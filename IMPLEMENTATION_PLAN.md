@@ -73,7 +73,7 @@
 
 | # | Task | Details | PDF Ref |
 |---|------|---------|---------|
-| S0-1 | **Initialize Turborepo monorepo** | `apps/web` (Next.js 14, App Router), `apps/api` (NestJS 10), `packages/shared` (TypeScript types, enums, constants) | Tech Stack |
+| S0-1 | **Initialize Turborepo monorepo** | Frontends: `apps/lms`, `apps/marketing`, `apps/admin`. Backends: `apps/api-gateway`. Packages: `core-lms`, `core-registration`, `core-invoice`, `core-certification`, `shared` | Tech Stack |
 | S0-2 | **Configure CI/CD pipeline** | GitHub Actions: lint → type-check → unit tests → build → deploy. Staging auto-deploy on `develop` branch, production on `main` with manual approval. | Environments |
 | S0-3 | **Set up Neon PostgreSQL** | Create project, `dev`/`staging`/`main` branches, generate pooled + direct connection strings | Tech Stack |
 | S0-4 | **Set up Upstash Redis** | Create instance, configure connection URL for sessions, cache, and BullMQ | Tech Stack |

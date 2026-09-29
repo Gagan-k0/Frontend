@@ -53,91 +53,40 @@
                         └──────────────┬──────────────────┘
                                        │
                  ┌─────────────────────▼─────────────────────┐
-                 │           NEXT.JS APPLICATION              │
+                 │       TURBOREPO MONOREPO WORKSPACE         │
                  │                                            │
                  │  ┌──────────────────────────────────────┐  │
-                 │  │        Route Groups (App Router)      │  │
-                 │  │                                       │  │
-                 │  │  /(public)     → SSR, SEO pages       │  │
-                 │  │  /(auth)       → Login, Signup        │  │
-                 │  │  /(portal)     → Learner dashboard    │  │
-                 │  │  /(admin)      → Admin panel/Studio   │  │
+                 │  │             APPS (FRONTEND)          │  │
+                 │  │                                      │  │
+                 │  │  apps/lms         → Learner Portal   │  │
+                 │  │  apps/marketing   → Public/Reg       │  │
+                 │  │  apps/admin       → Admin Panel      │  │
+                 │  └──────────────────┬───────────────────┘  │
+                 │                     │                      │
+                 │  ┌──────────────────▼───────────────────┐  │
+                 │  │              APPS (API)              │  │
+                 │  │                                      │  │
+                 │  │  apps/api-gateway → NestJS Entry     │  │
+                 │  └──────────────────┬───────────────────┘  │
+                 │                     │                      │
+                 │  ┌──────────────────▼───────────────────┐  │
+                 │  │          PACKAGES (SHARED DOMAINS)   │  │
+                 │  │                                      │  │
+                 │  │  packages/core-lms                   │  │
+                 │  │  packages/core-registration          │  │
+                 │  │  packages/core-certification         │  │
+                 │  │  packages/core-invoice               │  │
+                 │  │  packages/shared (Types/UI)          │  │
                  │  └──────────────────────────────────────┘  │
-                 │                                            │
-                 │  ┌──────────────────────────────────────┐  │
-                 │  │     API Route Proxy (optional)        │  │
-                 │  │     /api/proxy/* → NestJS backend     │  │
-                 │  └──────────────────────────────────────┘  │
-                 └────────────────────┬───────────────────────┘
-                                      │ HTTPS API calls
-                                      │ WebSocket connection
-                 ┌────────────────────▼───────────────────────┐
-                 │            NESTJS API SERVER                │
-                 │                                             │
-                 │  ┌─────────┐  ┌──────────┐  ┌───────────┐  │
-                 │  │  Auth   │  │  Users   │  │ Programs  │  │
-                 │  │  Guard  │  │  Module  │  │  Module   │  │
-                 │  ├─────────┤  ├──────────┤  ├───────────┤  │
-                 │  │ Batches │  │ Content  │  │  Quizzes  │  │
-                 │  │  Module │  │  Module  │  │  Module   │  │
-                 │  ├─────────┤  ├──────────┤  ├───────────┤  │
-                 │  │Sessions │  │Attendance│  │ Payments  │  │
-                 │  │  Module │  │  Module  │  │  Module   │  │
-                 │  ├─────────┤  ├──────────┤  ├───────────┤  │
-                 │  │Agreements│ │   Chat   │  │  Notify   │  │
-                 │  │  Module │  │  Module  │  │  Module   │  │
-                 │  ├─────────┤  ├──────────┤  ├───────────┤  │
-                 │  │  Certs  │  │ Reports  │  │   Audit   │  │
-                 │  │  Module │  │  Module  │  │  Module   │  │
-                 │  ├─────────┤  ├──────────┤  ├───────────┤  │
-                 │  │  Leads  │  │ Calendar │  │  Storage  │  │
-                 │  │  Module │  │  Module  │  │  Module   │  │
-                 │  └─────────┘  └──────────┘  └───────────┘  │
-                 │                                             │
-                 │  ┌──────────────────────────────────────┐   │
-                 │  │     WebSocket Gateway (Socket.IO)     │   │
-                 │  │     Chat + Live Notifications         │   │
-                 │  └──────────────────────────────────────┘   │
-                 │                                             │
-                 │  ┌──────────────────────────────────────┐   │
-                 │  │     Webhook Controllers                │   │
-                 │  │     /webhooks/stripe                   │   │
-                 │  │     /webhooks/zoom                     │   │
-                 │  │     /webhooks/google-meet               │   │
-                 │  └──────────────────────────────────────┘   │
-                 └─────┬──────┬──────┬──────┬────────────────┘
-                       │      │      │      │
-          ┌────────────▼──┐ ┌─▼────┐ ▼      ▼
-          │  Neon Postgres │ │Redis │ │   External
-          │  (Primary DB)  │ │      │ │   Services
-          │                │ │      │ │
-          │  - Users       │ │Cache │ ├─→ Stripe
-          │  - Programs    │ │Queue │ ├─→ Zoom / G-Meet
-          │  - Batches     │ │Rate  │ ├─→ MS Graph (Outlook)
-          │  - Enrolments  │ │Limit │ ├─→ Email Service
-          │  - Quizzes     │ │Sessions│├─→ Video CDN (Mux)
-          │  - Sessions    │ │      │ └─→ Object Storage (S3)
-          │  - Payments    │ └──────┘
-          │  - Certificates│
-          │  - Chat        │
-          │  - Audit Logs  │
-          └────────────────┘
-
-          ┌──────────────────────────────────────────────┐
-          │           BACKGROUND JOB WORKER               │
-          │           (BullMQ + Redis)                     │
-          │                                               │
-          │  Queues:                                       │
-          │  ├─ email-queue      (send emails)            │
-          │  ├─ notification     (in-app + push)          │
-          │  ├─ calendar-sync    (Outlook sync)           │
-          │  ├─ attendance-import (Zoom/Meet data)        │
-          │  ├─ certificate-gen  (PDF generation)         │
-          │  ├─ invoice-gen      (PDF generation)         │
-          │  ├─ watermark        (video/PDF watermark)    │
-          │  ├─ reminder         (session reminders)      │
-          │  └─ cleanup          (expired tokens, etc.)   │
-          └──────────────────────────────────────────────┘
+                 └─────────────────────┬─────────────────────┘
+                                       │
+                  ┌────────────────────▼───────────────────────┐
+                  │            INFRASTRUCTURE                  │
+                  │  - Neon Postgres (Database)                │
+                  │  - Upstash Redis (Cache & BullMQ Queues)   │
+                  │  - Cloudflare R2 (Object Storage)          │
+                  │  - Mux (Video CDN)                         │
+                  └────────────────────────────────────────────┘
 ```
 
 ### 1.2 Communication Patterns
@@ -156,18 +105,17 @@
 
 ADRs document **why** key technology choices were made, what alternatives were considered, and what trade-offs were accepted. These are essential for onboarding new developers and avoiding repeated debates.
 
-### ADR-001: Next.js + NestJS Stack
+### ADR-001: Domain-Driven Modular Monorepo (Turborepo)
 
 | Field | Value |
 |-------|-------|
 | **Status** | Accepted |
-| **Context** | The platform needs SSR for SEO (public pages), CSR for interactive portal/admin, a robust backend API with modules, and WebSocket support for chat. |
-| **Decision** | **Next.js** (App Router) for frontend; **NestJS** for backend API. |
+| **Context** | The platform needs to be highly reusable and scalable. A standard monolith tightly couples domains (e.g., LMS logic with Marketing/Registration logic), making it hard to reuse certification or invoice logic across different potential frontend clients or services. |
+| **Decision** | **Turborepo** workspace with strict domain separation. Frontend is split into distinct apps (`apps/lms`, `apps/marketing`, `apps/admin`). Backend logic is isolated into shared NestJS packages (`packages/core-lms`, `packages/core-registration`, `packages/core-certification`, `packages/core-invoice`) orchestrated by `apps/api-gateway`. |
 | **Alternatives Considered** | |
-| — Remix + Express | Remix has excellent SSR but lacks the mature module system NestJS provides. Express requires building guards, DI, and module structure from scratch. |
-| — Next.js API routes only (no separate backend) | Doesn't scale for 18+ modules. No native WebSocket support. Mixing business logic with Next.js creates tight coupling. |
-| — Nuxt.js + Fastify | Vue ecosystem is smaller for enterprise. Fastify lacks NestJS's opinionated module architecture. |
-| **Consequences** | Two deployable units (frontend + API) increase operational complexity but provide clean separation of concerns. Shared TypeScript types between projects require a strategy (see ADR-005). |
+| — Standard Monolith (Single Next.js + Single NestJS) | Easy to start, but becomes a "big ball of mud." Cannot deploy marketing site separately from LMS portal. Cannot reuse Invoice logic easily outside the main API. |
+| — Full Microservices | Network latency between internal services, complex orchestration (Kubernetes/Kafka), overkill for a team of 2 developers. |
+| **Consequences** | Excellent reusability. The `core-invoice` package can be imported anywhere. Marketing site (`apps/marketing`) can be deployed to the edge for maximum SEO speed without loading heavy LMS bundles. Requires strict discipline to avoid circular dependencies between `packages/*`. |
 
 ### ADR-002: Neon (Serverless PostgreSQL)
 

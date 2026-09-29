@@ -8,9 +8,9 @@
 
 ## 1. Global Sitemap & Routing (Next.js App Router)
 
-The application is divided into three primary routing zones, each protected by specific middleware.
+The frontend is split into three distinct Next.js apps within the Turborepo workspace for maximum reusability and SEO performance.
 
-### 1.1 Public Zone (No Auth Required)
+### 1.1 `apps/marketing` (Public Website, No Auth Required)
 - `/` (Home)
 - `/about` (Roweena's Story)
 - `/programs` (List of available programs)
@@ -18,7 +18,7 @@ The application is divided into three primary routing zones, each protected by s
 - `/contact` (Let's Talk)
 - `/login` & `/register`
 
-### 1.2 Learner Portal (Auth Required, Role: USER)
+### 1.2 `apps/lms` (Learner Portal, Auth Required: USER)
 - `/portal/onboarding` (Agreement signing barrier)
 - `/portal/dashboard` (Main hub, progress overview)
 - `/portal/programs/[id]` (The 11 Steps view)
@@ -28,7 +28,7 @@ The application is divided into three primary routing zones, each protected by s
 - `/portal/chat` (1:1 messaging)
 - `/portal/profile` (Settings, Invoices, Certificates)
 
-### 1.3 Admin Panel (Auth Required, Role: ADMIN / SUPER_ADMIN / MANAGER)
+### 1.3 `apps/admin` (Admin Panel, Auth Required: ADMIN / MANAGER)
 - `/admin/dashboard` (System metrics, revenue)
 - `/admin/users` (Learner management)
 - `/admin/batches` (Cohort scheduling, manager assignment)
