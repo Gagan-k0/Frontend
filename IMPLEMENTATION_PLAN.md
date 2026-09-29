@@ -4,7 +4,7 @@
 > **Date:** September 29, 2026  
 > **Author:** Foxwel.AI  
 > **Team:** 2 Developers (Full-Stack)  
-> **Source:** PRD v1.2 · ARCHITECTURE v1.1 · Requirements PDF
+> **Source:** PRD v1.2 · ARCHITECTURE v1.1 · TRD v1.2 · BACKEND_SCHEMA v1.0 · APP_FLOW v1.0 · UI_UX_DESIGN_BRIEF v1.0 · Requirements PDF
 
 ---
 
@@ -87,7 +87,7 @@
 
 | # | Task | NestJS Module | Prisma Models | PDF Ref |
 |---|------|--------------|---------------|---------|
-| S0-10 | **Create Prisma schema** (full) | — | ALL models from ARCH §5 (User, Program, Step, Lesson, Batch, Enrolment, Quiz, Question, Attempt, Session, Attendance, Payment, Invoice, Agreement, Certificate, Conversation, Message, Notification, AuditLog, Lead, RegistrationField, InstalmentPlan, RegistrationResponse, WaitlistEntry, OralAssessment, BatchStepOverride, Company, NotificationDelivery, etc.) | Core Entities |
+| S0-10 | **Create Prisma schema** (full) | — | Implement the exact schema defined in `BACKEND_SCHEMA.md` | Core Entities |
 | S0-11 | **Run initial migration** | `npx prisma migrate dev --name init` | — | — |
 | S0-12 | **Create seed script** | `prisma/seed.ts`: Create super admin user, sample program, sample step, sample batch | — |
 | S0-13 | **Set up common module** | `src/common/`: JWT auth guard, roles guard, batch-access guard, audit-log interceptor, http-exception filter, validation pipe, pagination DTO, timezone util, currency util, signed-url util | User Roles |
@@ -107,7 +107,7 @@
 
 | # | Task | Route / Component | PDF Ref |
 |---|------|-------------------|---------|
-| S0-25 | **Create design system** | `packages/shared/tokens.ts`: colors, typography, spacing. `apps/web/styles/globals.css`: CSS variables from brand kit. | — |
+| S0-25 | **Create design system** | Implement tokens exactly as defined in `UI_UX_DESIGN_BRIEF.md` (colors, typography, spacing). | — |
 | S0-26 | **Create layout components** | `PublicLayout`, `PortalLayout`, `AdminLayout` — header, footer, sidebar shell | §1 Public Website |
 | S0-27 | **Auth pages** | `/login`, `/signup`, `/verify-email`, `/forgot-password`, `/reset-password` | §2 Registration |
 | S0-28 | **Auth context / hooks** | `useAuth()` hook, `AuthProvider`, protected route wrapper, role-based redirect | — |
