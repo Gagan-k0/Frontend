@@ -1,141 +1,120 @@
 # WhatBoutMe LMS — Technical Requirements Document (TRD)
 
-> **Version:** 1.0  
+> **Version:** 1.1 (Deep Verification Update)  
 > **Date:** September 29, 2026  
-> **Source Documents:** PRD v1.2, ARCHITECTURE v1.1, IMPLEMENTATION PLAN
+> **Source Documents:** [PRD.md](file:///c:/Users/lenovo/Desktop/whataboutme/PRD.md), [ARCHITECTURE.md](file:///c:/Users/lenovo/Desktop/whataboutme/ARCHITECTURE.md), [IMPLEMENTATION_PLAN.md](file:///c:/Users/lenovo/Desktop/whataboutme/IMPLEMENTATION_PLAN.md)
 
 ---
 
 ## 1. Purpose & Scope
 
-The Technical Requirements Document (TRD) bridges the gap between business requirements (PRD) and system design (Architecture). It defines the strict technical constraints, logical flows, and rules the development team must follow during the Implementation Plan to ensure the system behaves exactly as the client requested.
+The Technical Requirements Document (TRD) serves as the definitive technical blueprint. It translates the business rules (PRD) and system structure (Architecture) into strict logical constraints, API contracts, database behaviors, and security protocols required for implementation.
 
 ---
 
-## 2. Technical Logic & Core Engines
+## 2. Core Engine Logic & State Machines
 
-### 2.1 The Progression Engine (Step Unlock Logic)
+### 2.1 Enrolment & Onboarding State Machine
+**Requirement:** Strict progression from payment to active learning.
+**Technical Flow:**
+1. `PENDING_PAYMENT`: User created, Stripe Session generated.
+2. `PENDING_AGREEMENT`: Stripe Webhook (`checkout.session.completed`) triggers update.
+3. `ACTIVE`: User posts base64 signature canvas. Backend converts to PDF, uploads to Cloudflare R2, updates state to ACTIVE.
 
-**PRD Requirement:** §9.7 "Step N+1 unlocks only when Step N's lessons are complete and its quiz is passed."
-**Architecture Mapping:** Handled by NestJS `StepsModule` and `QuizzesModule`.
-**Technical Rule:** 
-The backend must expose a strict `checkStepUnlock(enrolmentId, stepId)` method. It is evaluated:
-1. When a learner submits a quiz attempt.
-2. When a learner marks a lesson as complete.
-3. When an admin overrides a step's lock status (`BatchStepOverride`).
-
-*Logic Flow:*
-```typescript
-if (admin.hasManualOverride(stepId)) return true;
-if (batch.hasDateLock(stepId) && currentDate < lockDate) return false;
-const previousStep = getPreviousStep(stepId);
-if (!previousStep) return true; // Step 1 is always unlocked (if agreement signed)
-const lessonsComplete = checkAllLessonsViewed(previousStep.id);
-const quizPassed = checkQuizPassed(previousStep.quiz.id);
-return lessonsComplete && quizPassed;
+*Constraint:* Any `GET /api/steps` or `GET /api/lessons` request while `status !== 'ACTIVE'` must throw `403 Forbidden` with a standardized payload:
+```json
+{ "error": "Agreement Required", "code": "E_AGREEMENT_PENDING", "redirect": "/agreement" }
 ```
 
-### 2.2 Content Protection & Media Delivery (DRM)
+### 2.2 The Progression Engine (Step Unlock Logic)
+**Requirement:** Step N+1 unlocks only when Step N's content is viewed and quiz passed.
+**Logic Rules:**
+The `StepsService.checkUnlockStatus(userId, stepId)` must evaluate the following boolean tree:
+1. **Manual Override:** If `BatchStepOverride` table has `isUnlocked = true` for `(batchId, stepId)` -> `RETURN TRUE`.
+2. **Date Lock:** If `Batch.releaseSchedule == 'DRIP'` and `current_time < releaseDate(stepId)` -> `RETURN FALSE`.
+3. **Previous Step Check:** 
+   - Get `Step N-1`. If null (is Step 1), `RETURN TRUE`.
+   - `LessonsCheck:` Are all lessons in `Step N-1` marked `viewed = true` in `UserLessonProgress`?
+   - `QuizCheck:` Does `Attempt` table have `status = 'PASSED'` for `quizId` of `Step N-1`?
+   - `RETURN (LessonsCheck && QuizCheck)`.
 
-**PRD Requirement:** §11 "Content is view-only, no downloading, moving watermark on videos."
-**Architecture Mapping:** Cloudflare R2 (PDF/Audio) + Mux (Video).
-**Technical Rule:**
-The Next.js frontend NEVER receives a direct URL to a file. 
-1. **Request:** Frontend calls `GET /api/lessons/:id/content`
-2. **Validation:** Backend verifies the JWT token, confirms the user is enrolled, and checks that `checkStepUnlock(stepId)` is true.
-3. **Generation:** 
-   - For Video: Backend signs a Mux JWT with the user's email embedded as a watermark payload. Expiry: 15 mins.
-   - For PDF/Audio: Backend generates an AWS S3 `GetObject` presigned URL targeting Cloudflare R2. Expiry: 15 mins.
-4. **Delivery:** Frontend receives the temporary URL and feeds it directly into the Mux Player or `react-pdf` canvas renderer.
-
-### 2.3 Registration & Payment Pipeline
-
-**PRD Requirement:** §9.3 "Stripe checkout, automatic invoice, agreement signing required before Step 1."
-**Architecture Mapping:** `PaymentsModule`, `AgreementsModule`, Stripe Webhooks.
-**Technical Rule:**
-The onboarding state machine is strictly enforced by the backend:
-`PENDING_PAYMENT` → `PENDING_AGREEMENT` → `ACTIVE`
-
-1. **Stripe:** Use Stripe Checkout Sessions. The `metadata` field MUST contain `userId`, `programId`, `batchId`, and `couponId` to survive the webhook transition.
-2. **Idempotency:** The `POST /webhooks/stripe` endpoint must catch `checkout.session.completed`. If Stripe sends this 3 times, the DB must process it exactly once using a unique constraint on `StripeTransaction.id`.
-3. **Invoice Generation:** Dispatched to BullMQ immediately upon successful webhook.
-4. **Agreement Barrier:** `GET /api/portal/steps` must return `403 Forbidden` with code `AGREEMENT_REQUIRED` if `enrolment.status === 'PENDING_AGREEMENT'`.
-
-### 2.4 Synchronous Operations (Zoom & Calendar)
-
-**PRD Requirement:** §9.10 "Schedule a session, auto-create Zoom link, sync to Outlook."
-**Architecture Mapping:** `SessionsModule`, `ZoomProvider`, `OutlookProvider`.
-**Technical Rule:**
-When a session is created, multiple 3rd-party network calls occur. This must be handled transactionally to prevent orphaned data.
-1. **Flow:** Create local DB `Session` (PENDING) → Call Zoom API for meeting URL → Call Microsoft Graph for Outlook event → Update DB `Session` (ACTIVE).
-2. **Failure Handling:** If Microsoft Graph fails, the Zoom meeting must be deleted via API (rollback), and the DB record marked `FAILED_SYNC`.
-3. **Booking Clashes:** When a learner views `GET /api/sessions/availability`, the backend queries Roweena's Outlook `findMeetingTimes` endpoint live. Cached for max 5 minutes.
-
-### 2.5 Async Background Jobs & Webhooks
-
-**PRD Requirement:** §9.11 "Pull attendance automatically", §12 "Generate certificates", §17 "Emails".
-**Architecture Mapping:** BullMQ + Upstash Redis.
-**Technical Rule:**
-No heavy processing occurs during an HTTP request.
-- **Attendance:** A cron job runs every 10 mins. It checks for `Sessions` where `endTime < NOW() - 10 mins` and `attendancePulled == false`. It queries Zoom `GET /metrics/meetings/{id}/participants`, maps emails, updates the DB, and flags `attendancePulled = true`.
-- **Certificates:** Admin clicks "Approve". API returns `202 Accepted`. BullMQ worker `certificate-gen` generates PDF, uploads to R2, updates DB, sends email.
+### 2.3 Media Delivery & Content Protection (DRM)
+**Requirement:** Content cannot be downloaded; video must have a moving watermark.
+**Technical Flow:**
+1. **Frontend:** Requests `GET /api/lessons/:id/signed-url`
+2. **Backend (NestJS):** Validates JWT and `checkUnlockStatus()`.
+3. **Mux (Video):** Generates a 15-minute expiring JWT for the Mux Video Player. The JWT payload must include `watermark: { text: user.email, opacity: 0.3 }`.
+4. **Cloudflare R2 (PDF/Audio):** Generates an AWS S3 API `GetObject` presigned URL expiring in 15 minutes.
+*Constraint:* File endpoints must never return a permanent `.mp4` or `.pdf` link.
 
 ---
 
-## 3. Data & API Constraints
+## 3. Asynchronous Processes & Background Jobs
 
-### 3.1 Role & Scope Enforcement (Multi-tenancy logic)
+All async tasks are managed by **BullMQ** running on Upstash Redis.
 
-**PRD Requirement:** §5 "Manager sees only their assigned batches."
-**Technical Rule:**
-The NestJS `@UseGuards(BatchAccessGuard)` intercepts every request containing a `batchId` or `enrolmentId`.
-```typescript
-// Inside BatchAccessGuard
-const user = request.user;
-if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') return true;
-if (user.role === 'MANAGER') {
-    const isAssigned = await db.batch.findFirst({
-        where: { id: req.batchId, managerId: user.id }
-    });
-    if (!isAssigned) throw new ForbiddenException();
-    return true;
+### 3.1 Synchronous vs Asynchronous Operations
+| Trigger | Synchronous Action (API) | Asynchronous Action (BullMQ) |
+|---------|--------------------------|------------------------------|
+| **User Pays** | Return 200 to Stripe | Queue: `generate-invoice`, `welcome-email` |
+| **Class Scheduled** | Save session to DB | API Call: Zoom link gen, Outlook calendar sync |
+| **Class Ends** | None (Automated Cron) | Cron: `fetch-attendance` (Runs classEndTime + 10m) |
+| **Course Complete**| Return 200 (Success) | Queue: `generate-certificate`, `notify-manager` |
+
+### 3.2 Zoom Attendance Cron Logic
+**Schedule:** `*/10 * * * *` (Every 10 mins).
+**Worker Logic:**
+1. Query DB: `SELECT id, zoomMeetingId FROM Session WHERE endTime < NOW() - INTERVAL '10 minutes' AND attendancePulled = FALSE`.
+2. For each meeting, call Zoom API: `GET /metrics/meetings/{zoomMeetingId}/participants`.
+3. Map Zoom emails to LMS `User.email`.
+4. Bulk insert into `Attendance` table.
+5. Update `Session.attendancePulled = TRUE`.
+*Constraint:* Must handle Zoom pagination if participants > 300.
+
+---
+
+## 4. API & Data Contracts
+
+### 4.1 Global Error Handling
+The NestJS `HttpExceptionFilter` must intercept all errors to prevent stack trace leaks.
+*Contract format:*
+```json
+{
+  "statusCode": 400,
+  "timestamp": "2026-09-29T12:00:00Z",
+  "path": "/api/quizzes/submit",
+  "message": "Validation failed",
+  "code": "E_VALIDATION",
+  "details": { "answers": "Array is required" }
 }
 ```
 
-### 3.2 Timezone Normalization
-
-**PRD Requirement:** §12 "Store times in UTC, show in user's timezone."
-**Technical Rule:**
-- **Database:** PostgreSQL `TIMESTAMP WITH TIME ZONE` strictly used. All writes use `new Date().toISOString()`.
-- **Frontend (Next.js):** Uses `Intl.DateTimeFormat` configured with the user's saved timezone string (e.g., `Asia/Dubai`).
-- **Emails/Cron:** BullMQ scheduled jobs must read the target user's timezone from the DB before rendering time strings in email templates.
-
-### 3.3 Concurrency & Race Conditions
-
-**PRD Requirement:** §21 RAID "Prevent concurrent quiz submissions."
-**Technical Rule:**
-- **Quizzes:** `POST /api/quizzes/:id/submit` must wrap grading and state-saving in a Prisma `$transaction`. A unique index on `Attempt(quizId, enrolmentId, status)` ensures a learner cannot have two "in-progress" attempts at once.
-- **Waitlist:** Converting a waitlist seat to an active enrolment uses PostgreSQL row-level locking (`SELECT FOR UPDATE`) on the `Batch` capacity counter to prevent overbooking.
+### 4.2 Caching Strategy (Upstash Redis)
+*   **User Sessions:** Stored in Redis (TTL: 7 days).
+*   **Public Steps Data:** `GET /api/programs/:slug/steps` cached in Redis (TTL: 1 hour). Invalidated automatically on `Step` update.
+*   **Outlook Meeting Times:** Cached (TTL: 5 minutes) to prevent hitting Microsoft Graph API rate limits.
 
 ---
 
-## 4. Cross-Document Traceability Matrix
+## 5. Security & Infrastructure Protocols
 
-This table proves how a single feature connects across the entire project lifecycle.
+### 5.1 Role-Based Access Control (RBAC)
+Implemented via NestJS custom decorators: `@Roles(Role.ADMIN, Role.MANAGER)`.
+**Manager Scope Constraint:**
+If a user is `MANAGER`, the `BatchAccessGuard` must inject a `where` clause overriding their query to only return `Batch` entities where `managerId === req.user.id`.
 
-| Feature Flow | PRD (The "What") | Architecture (The "How") | Implementation Plan (The "When") | TRD (The "Logic") |
-|--------------|------------------|--------------------------|----------------------------------|-------------------|
-| **E-Signature** | §9.4 Agreement signing blocks Step 1. | `AgreementsModule`, R2 Storage, `Enrolment` schema. | Phase 1 (Sprint 3-4) | Enrolment state machine barrier. Base64 canvas → PDF → R2 upload. |
-| **Quizzes** | §9.9.1 Quizzes have pass marks & retries. | `QuizzesModule`, `Attempt` model. | Phase 1 (Sprint 5-6) | Prisma transaction for grading. DB constraints block duplicate attempts. |
-| **Zoom Sync** | §9.10 Auto-create meetings, pull attendance. | `ZoomProvider`, BullMQ cron. | Phase 2 (Sprint 9-10) | Sync failure rollback logic. Background task scraping 10 mins post-meeting. |
-| **Chat** | §9.14 Private 1:1 chat, unread alerts. | WebSockets (Socket.IO), Redis adapter ready. | Phase 3 (Sprint 15-16) | Authenticated WebSocket handshake. Fallback REST endpoints if WS drops. |
-| **Certificates** | §9.13 Issued on completion. | PDF generation worker, `Certificate` schema. | Phase 2 (Sprint 13-14) | Aggregation query checks 6 different completion flags before allowing admin approval. |
+### 5.2 Concurrency & Transaction Safety
+- **Quiz Submissions:** To prevent double-grading a quiz due to network latency, the submission logic must use PostgreSQL row-level locks and run inside a Prisma `$transaction`.
+- **Waitlist Seats:** `SELECT * FROM Batch WHERE id = X FOR UPDATE` is required when allocating a waitlist seat to prevent capacity overrides.
 
----
+### 5.3 Request Rate Limiting (Throttler)
+- **Global:** 100 requests per 1 minute per IP.
+- **Auth Endpoints:** 5 requests per 5 minutes per IP (Brute-force protection).
+- **Webhooks:** 200 requests per 1 minute (Stripe load protection).
 
-## 5. Non-Functional Technical Rules
-
-1. **API Rate Limiting:** Apply NestJS `@Throttle()` guards strictly as defined in ARCH §21 (e.g., Auth endpoints: 5/min, Webhooks: 100/min).
-2. **Database Pooling:** The Next.js frontend MUST NOT connect to Neon directly. All DB traffic funnels through the NestJS API utilizing PgBouncer (connection pool).
-3. **Error Masking:** The `HttpExceptionFilter` must catch all 500 errors. Internal stack traces or DB constraints (e.g., Prisma `P2002`) MUST NOT be leaked to the frontend. Return generic `{"error": "Internal Server Error", "code": "E_INTERNAL"}`.
-4. **Pagination:** Any `GET` endpoint returning lists (Users, Payments, Logs) must enforce a maximum `limit` of 100 to prevent DOS vector via massive table scans.
+### 5.4 CI/CD Quality Gates
+The GitHub Actions pipeline will enforce:
+1. `npm run type-check` (Zero TS errors allowed).
+2. `npm run lint` (ESLint strict mode).
+3. `npm run test` (Minimum 80% coverage on `StepsModule` and `QuizzesModule`).
+4. **Database:** Prisma schema changes automatically applied to Staging via `npx prisma migrate deploy`.
