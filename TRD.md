@@ -1,6 +1,6 @@
 # WhatBoutMe LMS — Technical Requirements Document (TRD)
 
-> **Version:** 1.1 (Deep Verification Update)  
+> **Version:** 1.2 (Enterprise Best Practice Update)  
 > **Date:** September 29, 2026  
 > **Source Documents:** [PRD.md](file:///c:/Users/lenovo/Desktop/whataboutme/PRD.md), [ARCHITECTURE.md](file:///c:/Users/lenovo/Desktop/whataboutme/ARCHITECTURE.md), [IMPLEMENTATION_PLAN.md](file:///c:/Users/lenovo/Desktop/whataboutme/IMPLEMENTATION_PLAN.md)
 
@@ -53,15 +53,7 @@ The `StepsService.checkUnlockStatus(userId, stepId)` must evaluate the following
 
 All async tasks are managed by **BullMQ** running on Upstash Redis.
 
-### 3.1 Synchronous vs Asynchronous Operations
-| Trigger | Synchronous Action (API) | Asynchronous Action (BullMQ) |
-|---------|--------------------------|------------------------------|
-| **User Pays** | Return 200 to Stripe | Queue: `generate-invoice`, `welcome-email` |
-| **Class Scheduled** | Save session to DB | API Call: Zoom link gen, Outlook calendar sync |
-| **Class Ends** | None (Automated Cron) | Cron: `fetch-attendance` (Runs classEndTime + 10m) |
-| **Course Complete**| Return 200 (Success) | Queue: `generate-certificate`, `notify-manager` |
-
-### 3.2 Zoom Attendance Cron Logic
+### 3.1 Zoom Attendance Cron Logic
 **Schedule:** `*/10 * * * *` (Every 10 mins).
 **Worker Logic:**
 1. Query DB: `SELECT id, zoomMeetingId FROM Session WHERE endTime < NOW() - INTERVAL '10 minutes' AND attendancePulled = FALSE`.
@@ -73,9 +65,31 @@ All async tasks are managed by **BullMQ** running on Upstash Redis.
 
 ---
 
-## 4. API & Data Contracts
+## 4. API & Data Contracts (Contract-First Approach)
 
-### 4.1 Global Error Handling
+### 4.1 Strict API Payload: Quiz Submission
+To ensure frontend and backend are aligned, the Quiz submission payload must strictly follow this DTO (Data Transfer Object):
+**POST** `/api/quizzes/:quizId/submit`
+*Request:*
+```json
+{
+  "attemptId": "uuid-v4",
+  "answers": [
+    { "questionId": "uuid-v4", "selectedOptionId": "uuid-v4" }
+  ]
+}
+```
+*Response (200 OK):*
+```json
+{
+  "score": 85,
+  "passed": true,
+  "unlockedStepId": "uuid-v4-next-step",
+  "certificateGenerated": false
+}
+```
+
+### 4.2 Global Error Handling
 The NestJS `HttpExceptionFilter` must intercept all errors to prevent stack trace leaks.
 *Contract format:*
 ```json
@@ -89,32 +103,39 @@ The NestJS `HttpExceptionFilter` must intercept all errors to prevent stack trac
 }
 ```
 
-### 4.2 Caching Strategy (Upstash Redis)
-*   **User Sessions:** Stored in Redis (TTL: 7 days).
-*   **Public Steps Data:** `GET /api/programs/:slug/steps` cached in Redis (TTL: 1 hour). Invalidated automatically on `Step` update.
-*   **Outlook Meeting Times:** Cached (TTL: 5 minutes) to prevent hitting Microsoft Graph API rate limits.
-
 ---
 
-## 5. Security & Infrastructure Protocols
+## 5. Security, Privacy & Infrastructure Protocols
 
-### 5.1 Role-Based Access Control (RBAC)
-Implemented via NestJS custom decorators: `@Roles(Role.ADMIN, Role.MANAGER)`.
-**Manager Scope Constraint:**
-If a user is `MANAGER`, the `BatchAccessGuard` must inject a `where` clause overriding their query to only return `Batch` entities where `managerId === req.user.id`.
+### 5.1 Data Privacy (GDPR Compliance)
+- **Soft Deletes:** `DELETE /api/users/:id` must NOT drop the row. It must set `deletedAt = NOW()`, scramble the `email` to a hashed string (e.g., `deleted_user_8f72a@domain.com`), and nullify the `name` to satisfy "Right to be Forgotten" without breaking relational data (like aggregate revenue).
+- **Encryption:** All Stripe customer IDs and Zoom OAuth refresh tokens must be encrypted at rest using AES-256-GCM before saving to PostgreSQL.
 
-### 5.2 Concurrency & Transaction Safety
-- **Quiz Submissions:** To prevent double-grading a quiz due to network latency, the submission logic must use PostgreSQL row-level locks and run inside a Prisma `$transaction`.
+### 5.2 API Security Headers (Helmet & CORS)
+- **CORS:** Must strictly whitelist `https://whatboutme.com` and `https://admin.whatboutme.com`. Wildcards (`*`) are prohibited in production.
+- **Helmet:** Must enforce `Content-Security-Policy` (CSP) allowing only scripts from the LMS domain, Mux, and Stripe.
+
+### 5.3 Observability & Logging Standards
+All backend logs must use Winston and be structured as JSON for ingestion into Sentry/Datadog.
+*Required Log Format:*
+```json
+{
+  "level": "error",
+  "message": "Stripe webhook signature verification failed",
+  "context": "StripeWebhookController",
+  "traceId": "x-request-id-uuid",
+  "userId": "uuid-if-known",
+  "timestamp": "2026-09-29T12:00:00Z"
+}
+```
+
+### 5.4 Concurrency & Transaction Safety
+- **Quiz Submissions:** To prevent double-grading, the submission logic must use PostgreSQL row-level locks and run inside a Prisma `$transaction`.
 - **Waitlist Seats:** `SELECT * FROM Batch WHERE id = X FOR UPDATE` is required when allocating a waitlist seat to prevent capacity overrides.
 
-### 5.3 Request Rate Limiting (Throttler)
-- **Global:** 100 requests per 1 minute per IP.
-- **Auth Endpoints:** 5 requests per 5 minutes per IP (Brute-force protection).
-- **Webhooks:** 200 requests per 1 minute (Stripe load protection).
-
-### 5.4 CI/CD Quality Gates
+### 5.5 CI/CD Quality Gates
 The GitHub Actions pipeline will enforce:
 1. `npm run type-check` (Zero TS errors allowed).
 2. `npm run lint` (ESLint strict mode).
-3. `npm run test` (Minimum 80% coverage on `StepsModule` and `QuizzesModule`).
-4. **Database:** Prisma schema changes automatically applied to Staging via `npx prisma migrate deploy`.
+3. `npm run test:e2e` (Playwright tests must pass for Checkout, Login, and Step 1).
+4. `npm run test:cov` (Minimum 80% coverage on `StepsModule`).
