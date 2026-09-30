@@ -14,7 +14,7 @@ export default function RevenuePage() {
 
   const fetchRevenue = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/revenue`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/revenue`);
       if (res.ok) {
         const json = await res.json();
         setData(json);

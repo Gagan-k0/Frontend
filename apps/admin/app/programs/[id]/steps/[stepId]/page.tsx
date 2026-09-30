@@ -30,7 +30,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
 
   const fetchLessons = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs/steps/${stepId}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/programs/steps/${stepId}`);
       if (res.ok) {
         const data = await res.json();
         setLessons(data.lessons || []);
@@ -46,7 +46,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
   const handleDeleteLesson = async (lessonId: string) => {
     if (!confirm("Are you sure you want to delete this lesson?")) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs/lessons/${lessonId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/programs/lessons/${lessonId}`, {
         method: "DELETE"
       });
       if (res.ok) {
@@ -66,7 +66,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
     setIsModalOpen(true);
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/mux/upload-url`, { method: "POST" });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/mux/upload-url`, { method: "POST" });
       if (res.ok) {
         const data = await res.json();
         setUploadUrl(data.url);
@@ -79,7 +79,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
 
   const handleUploadSuccess = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs/steps/${stepId}/lessons`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/programs/steps/${stepId}/lessons`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -166,7 +166,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
                     <Link href={`/quizzes/${quiz.id}/edit`} className={styles.secondaryBtn} style={{marginRight: '10px', textDecoration: 'none'}}>Edit</Link>
                     <button className={styles.secondaryBtn} style={{color: 'red'}} onClick={async () => {
                       if(confirm('Delete this quiz?')) {
-                        await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/quizzes/${quiz.id}`, { method: 'DELETE' });
+                        await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/quizzes/${quiz.id}`, { method: 'DELETE' });
                         fetchLessons();
                       }
                     }}>Delete</button>

@@ -36,7 +36,7 @@ export default function BatchesPage() {
 
   const fetchManagers = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/users`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/users`);
       if (res.ok) {
         const data = await res.json();
         setManagers(data.filter((u: any) => u.role === "MANAGER" || u.role === "SUPER_ADMIN"));
@@ -48,7 +48,7 @@ export default function BatchesPage() {
 
   const fetchPrograms = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/programs`);
       if (res.ok) {
         const data = await res.json();
         setPrograms(data);
@@ -60,7 +60,7 @@ export default function BatchesPage() {
 
   const fetchBatches = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/batches`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/batches`);
       if (res.ok) {
         const data = await res.json();
         setBatches(data);
@@ -101,7 +101,7 @@ export default function BatchesPage() {
   const handleDeleteBatch = async (id: string) => {
     if (!confirm("Are you sure you want to delete this batch?")) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/batches/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/batches/${id}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -125,8 +125,8 @@ export default function BatchesPage() {
 
     try {
       const url = editingBatchId 
-        ? `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/batches/${editingBatchId}` 
-        : `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/batches`;
+        ? `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/batches/${editingBatchId}` 
+        : `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/batches`;
       const method = editingBatchId ? "PATCH" : "POST";
 
       const res = await fetch(url, {

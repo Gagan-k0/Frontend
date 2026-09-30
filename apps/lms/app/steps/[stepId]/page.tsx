@@ -15,7 +15,7 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
   const [quizResult, setQuizResult] = useState<{ passed: boolean; score: number; message: string } | null>(null);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs/steps/${stepId}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/programs/steps/${stepId}`)
       .then(res => res.json())
       .then(data => {
         setStep(data);
@@ -34,7 +34,7 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
         }
 
         if (uploadId) {
-          fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/mux/upload/${uploadId}`)
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/mux/upload/${uploadId}`)
             .then(r => r.json())
             .then(muxData => {
               if (muxData.status === 'ready' && muxData.playbackId) {

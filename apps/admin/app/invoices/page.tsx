@@ -13,7 +13,7 @@ export default function InvoicesPage() {
 
   const fetchInvoices = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/invoices`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/invoices`);
       if (res.ok) {
         const data = await res.json();
         setInvoices(data);
