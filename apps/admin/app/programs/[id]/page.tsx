@@ -31,7 +31,7 @@ export default function ProgramCurriculumPage({ params }: { params: Promise<{ id
 
   const fetchProgram = async () => {
     try {
-      const res = await fetch(`http://localhost:4000/programs`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs`);
       if (res.ok) {
         const data = await res.json();
         const prog = data.find((p: any) => p.id === programId);
@@ -44,7 +44,7 @@ export default function ProgramCurriculumPage({ params }: { params: Promise<{ id
 
   const fetchSteps = async () => {
     try {
-      const res = await fetch(`http://localhost:4000/programs/${programId}/steps`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs/${programId}/steps`);
       if (res.ok) {
         const data = await res.json();
         setSteps(data);
@@ -60,7 +60,7 @@ export default function ProgramCurriculumPage({ params }: { params: Promise<{ id
   const handleCreateStep = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`http://localhost:4000/programs/${programId}/steps`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs/${programId}/steps`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -84,7 +84,7 @@ export default function ProgramCurriculumPage({ params }: { params: Promise<{ id
     if (!confirm("Are you sure you want to delete this section? This will also delete all associated lessons and quizzes.")) return;
     
     try {
-      const res = await fetch(`http://localhost:4000/programs/steps/${stepId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs/steps/${stepId}`, {
         method: "DELETE",
       });
       if (res.ok) {

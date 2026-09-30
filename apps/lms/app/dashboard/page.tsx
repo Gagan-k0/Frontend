@@ -50,7 +50,7 @@ export default function LearnerDashboard() {
       return;
     }
 
-    fetch("http://localhost:4000/auth/me", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {

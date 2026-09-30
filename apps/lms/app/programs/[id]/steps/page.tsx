@@ -12,7 +12,7 @@ export default function ProgramStepsPage({ params }: { params: Promise<{ id: str
   const router = useRouter();
 
   useEffect(() => {
-    fetch(`http://localhost:4000/programs/${unwrappedParams.id}/steps`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs/${unwrappedParams.id}/steps`)
       .then(res => res.json())
       .then(data => {
         setSteps(data);

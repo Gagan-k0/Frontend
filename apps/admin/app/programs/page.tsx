@@ -31,7 +31,7 @@ export default function ProgramsPage() {
 
   const fetchPrograms = async () => {
     try {
-      const res = await fetch("http://localhost:4000/programs");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs`);
       if (res.ok) {
         const data = await res.json();
         setPrograms(data);
@@ -69,7 +69,7 @@ export default function ProgramsPage() {
   const handleDeleteProgram = async (id: string) => {
     if (!confirm("Are you sure you want to archive this program?")) return;
     try {
-      const res = await fetch(`http://localhost:4000/programs/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs/${id}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -93,8 +93,8 @@ export default function ProgramsPage() {
 
     try {
       const url = editingProgramId 
-        ? `http://localhost:4000/programs/${editingProgramId}` 
-        : "http://localhost:4000/programs";
+        ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs/${editingProgramId}` 
+        : `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs`;
       
       const method = editingProgramId ? "PATCH" : "POST";
 
