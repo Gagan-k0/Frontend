@@ -74,14 +74,9 @@
 | # | Task | Details | PDF Ref |
 |---|------|---------|---------|
 | S0-1 | **Initialize Turborepo monorepo** | Frontends: `apps/lms`, `apps/marketing`, `apps/admin`. Backends: `apps/api-gateway`. Packages: `core-lms`, `core-registration`, `core-invoice`, `core-certification`, `shared` | Tech Stack |
-| S0-2 | **Configure CI/CD pipeline** | GitHub Actions: lint → type-check → unit tests → build → deploy. Staging auto-deploy on `develop` branch, production on `main` with manual approval. | Environments |
-| S0-3 | **Set up AWS RDS** | Provision PostgreSQL instance in private VPC, configure security groups, get connection string | Tech Stack |
-| S0-4 | **Set up AWS ElastiCache** | Provision Redis cluster, configure VPC access for sessions and BullMQ | Tech Stack |
-| S0-5 | **Set up Sentry** | Create frontend + backend projects, install SDKs, configure source maps for Next.js | Non-Functional |
-| S0-6 | **Set up AWS Amplify** | Connect `apps/lms`, `apps/marketing`, `apps/admin` repos, configure environment variables | Environments |
-| S0-7 | **Set up AWS ECS (Fargate)** | Create task definitions for API and Worker with Dockerfiles, configure load balancer | Environments |
-| S0-8 | **Set up AWS S3** | Create `whatboutme-storage` bucket, enable CORS, configure IAM policies | Data & Storage |
-| S0-9 | **Create `.env.example`** | Document ALL environment variables per the Env Var Catalogue (ARCH §22) | — |
+| S0-2 | **Configure Local Database** | Set up local PostgreSQL instance via Docker or native install for development | Tech Stack |
+| S0-3 | **Configure Local Redis** | Set up local Redis instance via Docker or native install for session and queue development | Tech Stack |
+| S0-4 | **Create `.env.example`** | Document ALL environment variables per the Env Var Catalogue (ARCH §22), defaulted to local URLs | — |
 
 #### Backend Tasks (NestJS)
 
@@ -764,6 +759,22 @@ Every requirement from the PDF mapped to the sprint where it's built:
 | Non-Functional | Error tracking, uptime checks, alerts | S0 (Sentry) | ⬜ |
 | Non-Functional | Accessibility (readable fonts, captions, keyboard) | S1–2 (baseline), S17–18 (audit) | ⬜ |
 | Non-Functional | Handover (code repo, setup guide, admin guide, training) | S17–18 | ⬜ |
+
+---
+
+## 4. Phase 4 — Production Infrastructure & Cloud Setup (Sprints 19–20)
+
+> **Phase Goal:** Transition the local-first development environment to the robust AWS Enterprise Stack described in the architecture. This occurs ONLY after the frontend and backend are fully built and tested locally.
+
+| # | Task | Details |
+|---|------|---------|
+| S19-1 | **Configure CI/CD pipeline** | GitHub Actions: lint → type-check → unit tests → build → deploy. Staging auto-deploy on `develop` branch, production on `main`. |
+| S19-2 | **Set up AWS RDS** | Provision PostgreSQL instance in private VPC, configure security groups, apply Prisma migrations to production. |
+| S19-3 | **Set up AWS ElastiCache** | Provision Redis cluster, configure VPC access for sessions and BullMQ in production. |
+| S19-4 | **Set up AWS S3** | Create `whatboutme-storage` bucket, enable CORS, configure IAM policies for file uploads. |
+| S19-5 | **Set up AWS ECS (Fargate)** | Create task definitions for API and Worker with Dockerfiles, configure load balancer. |
+| S19-6 | **Set up AWS Amplify / CloudFront** | Connect frontend repos, configure global edge caching, environment variables. |
+| S19-7 | **Set up Sentry** | Create frontend + backend projects, install SDKs, configure source maps for error tracking. |
 
 ---
 
