@@ -1,29 +1,47 @@
 :root {
-  --bg-dark: #0f172a;
-  --bg-panel: rgba(30, 41, 59, 0.7);
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --accent-primary: #e94560;
-  --accent-secondary: #ff8a00;
-  --border-color: rgba(255, 255, 255, 0.1);
+  /* Soft Neutral / Ivory Background */
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  
+  /* Minimal Indigo Premium Accents */
+  --accent-primary: #6366f1; /* Soft Indigo */
+  --accent-primary-hover: #4f46e5;
+  --accent-secondary: #94a3b8; /* Cool gray-blue */
+  --accent-highlight: #e0e7ff; /* Lavender tint */
+  
+  /* Typography */
+  --text-primary: #1e293b; /* Deep charcoal */
+  --text-secondary: #64748b; /* Muted gray-blue */
+  --text-disabled: #cbd5e1;
+  
+  /* Borders and Shadows */
+  --border-light: #e2e8f0;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  
+  /* Status Colors (Muted) */
+  --status-success: #10b981;
+  --status-success-bg: #d1fae5;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background: radial-gradient(circle at top left, #1e1b4b, #0f172a, #020617);
+  background-color: var(--bg-main);
   color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
   box-sizing: border-box;
 }
 
-/* Glassmorphism utility */
-.glass {
-  background: var(--bg-panel);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
+/* Base headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  margin-top: 0;
+  font-weight: 600;
 }
