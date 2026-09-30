@@ -1,101 +1,103 @@
 # WhatBoutMe LMS — UI/UX Design Brief
 
-> **Version:** 1.0  
-> **Date:** September 29, 2026  
+> **Version:** 2.0 (Updated to Warm Premium SaaS Theme)  
+> **Date:** September 30, 2026  
 > **Verified Against:** PRD v1.2, TRD v1.2, APP_FLOW v1.0, ARCHITECTURE v1.1
 
 ---
 
 ## 1. Executive Design Vision
 
-The WhatBoutMe LMS must feel **premium, authoritative, yet highly accessible**. It is not just a course platform; it is a premium certification environment. The design must minimize cognitive load, allowing the learner to focus entirely on the video and text content. 
+The WhatBoutMe LMS must feel **clean, modern, minimalistic, premium, and elegant**. It is not just a course platform; it is a premium certification environment. The design must minimize cognitive load, allowing the learner to focus entirely on the video and text content. 
 
 **Core Principles:**
 - **Clarity over Cleverness:** Progression paths must be blindly obvious.
-- **Focus Mode:** Once inside a Step, the UI must fade away. Distractions are minimized.
-- **Premium Aesthetics:** Utilize subtle glassmorphism, refined typography, and smooth micro-interactions to create a $1000+ course feel.
+- **Premium Minimal SaaS Feel:** The interface must feel calm, spacious, polished, professional, and visually balanced.
+- **Organic Aesthetics:** Utilize a warm, earthy color palette, soft rounded corners (20px-24px), and refined typography to create a high-end SaaS product feel, rather than a generic tech template.
 
 ---
 
-## 2. Design System & Tokens (Tailwind CSS Base)
+## 2. Design System & Tokens (CSS Variables Base)
 
 ### 2.1 Color Palette
-- **Primary Brand (Action):** `Deep Royal Blue` (#1E3A8A) — Used for primary buttons, active states, and Step 1 unlocks.
-- **Secondary Brand (Accent):** `Warm Gold` (#D97706) — Used for certifications, confetti, and achievement badges.
-- **Background (App):** `Off-White/Pearl` (#F8FAFC) — Reduces eye strain for long reading sessions compared to pure white.
-- **Background (Focus Mode):** `Dark Slate` (#0F172A) — Used for the video player theater mode.
-- **State Colors:** 
-  - Success: `Emerald` (#10B981)
-  - Error/Lock: `Rose` (#E11D48)
-  - Disabled: `Slate 300` (#CBD5E1)
+- **Background (Main):** `Warm Cream / Ivory` (#fdfaf6) — Reduces eye strain and creates a calm, welcoming environment.
+- **Background (Card):** `Pure White` (#ffffff) — Used for elevated surfaces to create soft contrast against the cream background.
+- **Primary Brand (Action):** `Deep Olive / Forest Green` (#3a4d39) — Used for primary buttons, active states, and emphasis. Replaces traditional harsh blues.
+- **Primary Brand Hover:** `Dark Forest` (#2b3a2a) — For interactive depth on buttons.
+- **Secondary Brand (Accent):** `Muted Sage` (#739072) — Used for secondary actions and subtle highlights.
+- **Accent Highlight:** `Soft Beige/Green` (#ecece2) — Used for subtle background highlights on active sidebar items or avatars.
+- **Borders:** `Light Beige-Gray` (#e8e5df) — Keeps separation soft and organic.
+- **State Colors (Soft Pastels):** 
+  - Success: `Muted Green` (#4d6b50) / Background: `#f2f7f2`
+  - Warning/Pending: `Soft Amber` (#9c6c21) / Background: `#fffbf0`
+  - Error/Lock: `Muted Rose/Slate` (No harsh neon reds).
 
 ### 2.2 Typography
-- **Headings (Display):** `Outfit` or `Plus Jakarta Sans` — Geometric, modern, instills authority.
-- **Body Text:** `Inter` or `Roboto` — Highly legible, specifically chosen for long-form PDF reading and quiz taking.
+- **Font Family:** `Inter`, system-ui, -apple-system, sans-serif — Highly legible, modern, and clean.
+- **Headings (Display):** Bold (700-800 weight), using the `--text-primary` color (#2c2b29).
+- **Body Text:** Medium (500 weight), using `--text-secondary` (#6e6a64).
 - **Base Size:** `16px` for optimal readability. 
-- **Line Height:** `1.6` for lesson content to prevent text wall fatigue.
 
 ---
 
 ## 3. Core Component Library
 
-1. **The "Step Card" (Dashboard):**
-   - *Locked State:* Gray background, low opacity text, prominent padlock icon, no hover effect.
-   - *Unlocked State:* White card, soft drop shadow, Primary Blue title, hover translates `Y` up by `-2px` with a smooth `ease-in-out` 200ms transition.
-   - *Completed State:* Faded border, Green checkmark badge, "Review" button.
+1. **Cards & Containers:**
+   - Soft, organic geometry. All major cards, stat blocks, and login panels use a `20px` to `24px` border radius.
+   - Borders are thin (`1px solid var(--border-light)`).
+   - Shadows are extremely subtle and soft (`box-shadow: 0 4px 12px rgba(0,0,0,0.02)`).
 
-2. **Progress Indicators:**
-   - Circular SVG progress rings for overall course completion (e.g., 45% with a primary colored arc).
-   - Linear progress bars inside Quizzes to show `Question 3 of 10`.
+2. **Buttons & Actions:**
+   - **Primary CTA:** Solid Deep Olive green background, rounded corners (12px), white text, smooth transform on hover.
+   - **Secondary/Ghost:** Transparent background with subtle border or highlight on hover.
+   - **Table Actions:** Uniform, subtle SVG icons (e.g., standard document icon for viewing/downloading, horizontal ellipsis `•••` for dropdown actions) instead of bulky text buttons.
 
-3. **Skeleton Loaders:**
-   - Do not use generic spinners. Use pulsing skeleton shapes that mimic the content loading (e.g., a pulsing gray rectangle where the Mux Video will appear). This reduces perceived latency.
-
-4. **Modals & Overlays:**
-   - Used heavily for the Quiz UI and the Agreement Signature Canvas. Must use a `backdrop-blur-sm` effect (glassmorphism) to keep the user grounded in the app while demanding immediate attention.
+3. **Progress Indicators:**
+   - Minimalist linear progress bars using the Deep Olive primary color over a light beige track.
 
 ---
 
 ## 4. UI Flow & Screen Guidelines (Mapped to APP_FLOW)
 
 ### 4.1 Public Marketing Pages (`/`, `/programs`)
-- **Vibe:** Conversion-heavy, dynamic.
-- **Elements:** Large hero sections, social proof (testimonial carousels), sticky header with "Enroll Now" CTA.
-- **Animation:** Scroll-triggered fade-ups (using Framer Motion) to make the page feel alive.
+- **Vibe:** Clean, spacious, and trustworthy.
+- **Elements:** Large, airy hero sections, soft cream background, floating white glass cards for features. 
+- **Animation:** Gentle fade-ups and 3D tilts (perspective rotations) on hero cards to make the page feel premium and alive.
 
 ### 4.2 Onboarding: The E-Signature Screen
-- **Vibe:** Legal, serious, but frictionless.
-- **Elements:** A massive, clean white canvas area for the signature. A "Clear" button and a "Sign & Continue" button. Must work flawlessly with mobile touch screens (no accidental scrolling while signing).
+- **Vibe:** Legal, serious, but frictionless and warm.
+- **Elements:** Clean white card floating on the cream background. Simple checkbox and text input for signature. Reassuring, muted typography.
 
-### 4.3 Learner Focus Mode (`/portal/programs/1/step/2`)
-- **Vibe:** Deep concentration.
+### 4.3 Learner Dashboard & Focus Mode
+- **Vibe:** Deep concentration and calm progression.
 - **Elements:** 
-  - Collapsible sidebar. When the video plays, the sidebar auto-collapses.
-  - Video player takes up 80% of the viewport width on desktop.
-  - Next/Previous lesson buttons are large and sticky at the bottom of the screen.
+  - Clean sidebar with soft hover states.
+  - Video player is a focal point with rounded corners, avoiding harsh black rectangular edges where possible.
+  - Next/Previous lesson buttons are clear and accessible.
 
-### 4.4 Quiz Interface
-- **Vibe:** Testing environment.
-- **Elements:** One question per screen. Large touch-targets for multiple-choice options (entire row is clickable, not just the radio button). A countdown timer anchored to the top right.
+### 4.4 Admin Panel (Roweena's Studio)
+- **Vibe:** High-end enterprise SaaS.
+- **Elements:** 
+  - Spacious data tables with uppercase, spaced-out headers.
+  - Status chips use pastel backgrounds for at-a-glance scanning without visual fatigue.
+  - Search bars are wide, elegant, with soft corners and thin neutral borders.
 
 ---
 
 ## 5. Accessibility (a11y) & Edge Case UI (Mapped to TRD)
 
-1. **High Contrast:** All text over backgrounds must meet WCAG 2.1 AA contrast ratio (4.5:1).
-2. **Keyboard Navigation:** Crucial for Quizzes and Admin panel. The user must be able to TAB through quiz options and hit ENTER to submit. Focus rings (`ring-2 ring-blue-500`) must be highly visible when using the keyboard.
-3. **Empty States:** If a user has no active batches, do not show a blank screen. Show a beautifully illustrated "Empty State" with a CTA to browse programs.
-4. **Error States (TRD mapping):** 
-   - If `checkUnlockStatus()` fails, show a friendly 403 screen: "Oops! You need to finish the previous step first" with a clear "Go Back" button. Do not show generic 400/500 errors.
-5. **Responsive Design:** 
-   - **Mobile (Base):** Stacked UI, hamburger menu, sticky bottom navigation bars for lesson progression.
-   - **Tablet (md):** Two-column layouts for dashboard.
-   - **Desktop (lg+):** Sidebar navigation, expansive data tables for Admin.
+1. **Contrast:** The deep olive and dark gray text against the warm cream background ensures high legibility and meets WCAG standards without the harshness of pure black-on-white.
+2. **Keyboard Navigation:** Focus states should utilize the `var(--accent-primary)` color to clearly indicate active elements.
+3. **Empty States:** Clean, dashed-border areas with subtle icons and muted text to encourage action (e.g., in the Certificates tab).
+4. **Responsive Design:** 
+   - **Mobile (Base):** Stacked UI, clean spacing.
+   - **Tablet (md):** Two-column layouts for dashboard metrics.
+   - **Desktop (lg+):** Persistent sidebar navigation, expansive data tables for Admin.
 
 ---
 
 ## 6. Feedback & Micro-Interactions
 
-- **Success States:** When a user passes the 11th step or final exam, trigger a lightweight confetti animation (react-confetti). Positive reinforcement drives completion rates.
-- **Haptic Feedback (Mobile):** Utilize browser vibration API (if permitted) when a user submits a quiz or signs the agreement to provide physical validation.
-- **Save States:** When an admin is editing a course in "Roweena's Studio," show a subtle "Saving..." to "Saved!" indicator in the top right, utilizing debounced auto-saves.
+- **Hover States:** Buttons translate Y up by `-2px` with a smooth 200ms ease transition. Cards may have subtle scale or 3D rotation effects on the marketing site.
+- **Action Icons:** Table action icons slightly darken and gain a soft background tint on hover to confirm interactivity.
+- **Animations:** Page loads utilize a gentle `fadeIn` animation (translating Y from 10px to 0px) to make the application feel fluid and native.
