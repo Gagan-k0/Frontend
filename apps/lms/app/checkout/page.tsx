@@ -24,7 +24,7 @@ function CheckoutContent() {
     }
 
     if (programId) {
-      fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs`)
+      fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs`)
         .then((res) => res.json())
         .then((data) => {
           const p = data.find((x: any) => x.id === programId);
@@ -51,7 +51,7 @@ function CheckoutContent() {
 
     try {
       const token = localStorage.getItem("token");
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs/enroll`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs/enroll`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

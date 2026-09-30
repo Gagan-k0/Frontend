@@ -1,23 +1,30 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from '../src/app.module.js';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import serverlessExpress from '@vendia/serverless-express';
-import { Handler } from 'express';
+import express from 'express';
+import { AppModule } from '../src/app.module';
 
-let cachedServer: Handler;
+let cachedServer: any;
 
-async function bootstrap() {
+async function bootstrapServer() {
   if (!cachedServer) {
-    const app = await NestFactory.create(AppModule);
-    app.enableCors();
-    await app.init();
-    
-    const expressApp = app.getHttpAdapter().getInstance();
+    const expressApp = express();
+    const nestApp = await NestFactory.create(
+      AppModule,
+      new ExpressAdapter(expressApp),
+    );
+    nestApp.enableCors({
+      origin: "*", // allow all for now, in prod you restrict this
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      credentials: true,
+    });
+    await nestApp.init();
     cachedServer = serverlessExpress({ app: expressApp });
   }
   return cachedServer;
 }
 
 export default async (req: any, res: any) => {
-  const server = await bootstrap();
+  const server = await bootstrapServer();
   return server(req, res);
 };

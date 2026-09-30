@@ -9,7 +9,7 @@ export default function ProgramsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:4000/programs")
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs`)
       .then(res => res.json())
       .then(data => {
         // filter out inactive programs if needed
