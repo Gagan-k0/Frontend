@@ -116,7 +116,7 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <Link href="/" className={styles.backBtn}>← Back to Roadmap</Link>
+        <Link href="/dashboard" className={styles.backBtn}>← Back to Roadmap</Link>
         <h1 className={styles.title}>Step {step.sequence}: {step.title}</h1>
         <p className={styles.subtitle}>{step.description}</p>
       </header>

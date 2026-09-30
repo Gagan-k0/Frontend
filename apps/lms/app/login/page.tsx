@@ -38,7 +38,7 @@ function LoginForm() {
         if (programIdToEnroll) {
           router.push(`/checkout?programId=${programIdToEnroll}`);
         } else {
-          router.push("/");
+          router.push("/dashboard");
         }
       } else {
         const err = await res.json();
