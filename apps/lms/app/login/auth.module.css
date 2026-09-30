@@ -4,40 +4,37 @@
   align-items: center;
   min-height: 100vh;
   padding: 2rem;
-  background: radial-gradient(circle at center, #1e1b4b, #0f172a, #020617);
+  background-color: var(--bg-main);
 }
 
 .authCard {
-  background: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 3rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
   width: 100%;
   max-width: 450px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 30px -5px rgba(0, 0, 0, 0.03);
   text-align: center;
-  animation: slideUp 0.5s ease-out;
+  animation: slideUp 0.4s ease-out;
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .logo {
-  font-size: 2rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #e94560, #ff8a00);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
   margin: 0 0 1rem 0;
 }
 
 .authCard h2 {
   margin: 0 0 0.5rem 0;
   font-size: 1.5rem;
-  color: white;
+  color: var(--text-primary);
 }
 
 .authCard p {
@@ -67,10 +64,10 @@
 
 .inputGroup input {
   padding: 1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2);
-  color: white;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-main);
+  color: var(--text-primary);
   outline: none;
   font-family: inherit;
   font-size: 1rem;
@@ -79,25 +76,24 @@
 
 .inputGroup input:focus {
   border-color: var(--accent-primary);
-  background: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 0 3px var(--accent-highlight);
 }
 
 .submitBtn {
-  background: linear-gradient(135deg, #e94560, #ff8a00);
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 1rem;
-  border-radius: 10px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: background-color 0.2s ease;
   margin-top: 1rem;
 }
 
 .submitBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(233, 69, 96, 0.3);
+  background: var(--accent-primary-hover);
 }
 
 .footerText {

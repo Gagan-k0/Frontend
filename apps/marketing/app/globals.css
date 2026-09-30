@@ -1,50 +1,36 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Warm Cream / Ivory Background */
+  --bg-main: #fdfaf6;
+  --bg-card: #ffffff;
+  
+  /* Deep Olive / Forest Green Accents */
+  --accent-primary: #3a4d39;
+  --accent-primary-hover: #2b3a2a;
+  --accent-secondary: #739072;
+  --accent-highlight: #ecece2;
+  
+  /* Typography */
+  --text-primary: #2c2b29;
+  --text-secondary: #6e6a64;
+  --border-light: #e8e5df;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.imgDark {
-  display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-
-  .imgLight {
-    display: none;
-  }
-  .imgDark {
-    display: unset;
-  }
+/* Base headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+  margin-top: 0;
+  font-weight: 600;
 }

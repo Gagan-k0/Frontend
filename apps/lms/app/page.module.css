@@ -1,102 +1,70 @@
 .dashboard {
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background-color: var(--bg-main);
+  color: var(--text-primary);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
+  margin-bottom: 3rem;
 }
 
 .title {
-  font-size: 2.5rem;
+  font-size: 2rem;
+  font-weight: 700;
   margin: 0 0 0.5rem 0;
-  font-weight: 800;
-  letter-spacing: -0.5px;
+  color: var(--text-primary);
 }
 
 .subtitle {
   color: var(--text-secondary);
   margin: 0;
-  font-size: 1.1rem;
 }
 
-.resumeBtn {
-  display: inline-block;
-  text-decoration: none;
-  background: linear-gradient(135deg, #e94560, #ff8a00);
-  color: white;
-  border: none;
-  padding: 0.8rem 2rem;
-  border-radius: 50px;
-  font-weight: 600;
-  font-size: 1rem;
-  cursor: pointer;
-  box-shadow: 0 10px 20px rgba(233, 69, 96, 0.3);
-  transition: all 0.3s ease;
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
 }
 
-.resumeBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 25px rgba(233, 69, 96, 0.4);
-}
-
-.progressCard {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+.statCard {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-radius: 20px;
-  padding: 2rem;
-  backdrop-filter: blur(10px);
-}
-
-.progressInfo {
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  gap: 0.8rem;
 }
 
-.progressInfo h3 {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
-.percentage {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--accent-primary);
-}
-
-.progressBar {
-  height: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.progressFill {
-  height: 100%;
-  background: linear-gradient(90deg, #e94560, #ff8a00);
-  border-radius: 10px;
-  transition: width 1s ease-in-out;
-}
-
-.sectionTitle {
-  font-size: 1.5rem;
-  margin: 0 0 1.5rem 0;
+.statValue {
+  font-size: 2rem;
   font-weight: 700;
+  color: var(--text-primary);
 }
 
-.stepsList {
+.statLabel {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.roadmap {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.stepList {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -104,108 +72,99 @@
 
 .stepCard {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
   padding: 1.5rem;
-  border-radius: 16px;
-  transition: all 0.3s ease;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-main);
+  transition: all 0.2s;
 }
 
-.stepCard.completed {
-  border-left: 4px solid #10b981;
+.stepCard:hover {
+  border-color: var(--accent-secondary);
 }
 
-.stepCard.in_progress {
-  border-left: 4px solid var(--accent-primary);
-  background: rgba(233, 69, 96, 0.05);
-  transform: scale(1.01);
+.stepCompleted {
+  background: var(--bg-card);
+  border-color: var(--accent-secondary);
 }
 
-.stepCard.locked {
+.stepLocked {
   opacity: 0.6;
+  background: transparent;
 }
 
-.stepSequence {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+.stepInfo h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+}
+
+.stepInfo p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.actionBtn {
+  background: var(--accent-primary);
+  color: white;
+  text-decoration: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.actionBtn:hover {
+  background: var(--accent-primary-hover);
+}
+
+.completedBtn {
+  background: transparent;
+  color: var(--accent-secondary);
+  border: 1px solid var(--accent-secondary);
+}
+
+.lockedBtn {
+  background: transparent;
+  color: var(--text-disabled);
+  border: 1px solid var(--border-light);
+  cursor: not-allowed;
+}
+
+.videoContainer {
+  background: #000;
+  border-radius: 20px;
+  overflow: hidden;
+  aspect-ratio: 16/9;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-weight: bold;
-  margin-right: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-light);
 }
 
-.completed .stepSequence {
-  background: #10b981;
-  color: white;
+.quizSection {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  margin-top: 2rem;
 }
 
-.in_progress .stepSequence {
-  background: var(--accent-primary);
-  color: white;
-}
-
-.stepDetails {
-  flex: 1;
-}
-
-.stepTitle {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.stepMeta {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.tag {
-  font-size: 0.75rem;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 4px 10px;
-  border-radius: 4px;
-  color: var(--text-secondary);
-}
-
-.duration {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.stepAction {
-  margin-left: 2rem;
-}
-
-.continueBtn {
-  display: inline-block;
-  text-decoration: none;
-  background: white;
-  color: #0f172a;
-  border: none;
-  padding: 0.6rem 1.5rem;
-  border-radius: 50px;
-  font-weight: 600;
+.quizOption {
+  display: block;
+  padding: 1.2rem;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  margin-bottom: 1rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.2s;
 }
 
-.continueBtn:hover {
-  background: #f1f5f9;
-  transform: translateY(-2px);
-}
-
-.statusCompleted {
-  color: #10b981;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.statusLocked {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+.quizOption:hover {
+  border-color: var(--accent-secondary);
+  background: var(--accent-highlight);
 }

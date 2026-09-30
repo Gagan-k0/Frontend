@@ -86,8 +86,8 @@
 .statCard {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-radius: 12px;
-  padding: 1.2rem;
+  border-radius: 20px;
+  padding: 1.5rem;
   box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
@@ -157,7 +157,7 @@
 .tableSection {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-radius: 16px;
+  border-radius: 20px;
   box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
@@ -306,8 +306,8 @@
 }
 
 .pending {
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
 }
 
 .completed {
