@@ -48,7 +48,7 @@ export default function LmsSidebar() {
     router.push("/login");
   };
 
-  if (pathname === "/" || pathname === "/login" || pathname === "/signup") {
+  if (pathname === "/login" || pathname === "/signup") {
     return null;
   }
 
@@ -76,7 +76,7 @@ export default function LmsSidebar() {
       <nav className={styles.navMenu}>
         <div className={styles.navGroup}>
           <p className={styles.navTitle}>LEARNING</p>
-          <Link href="/dashboard" className={`${styles.navItem} ${pathname === "/dashboard" ? styles.active : ""}`}>
+          <Link href="/" className={`${styles.navItem} ${pathname === "/" ? styles.active : ""}`}>
             <Icons.Programs /> My Programs
           </Link>
           <Link href="/live" className={`${styles.navItem} ${pathname === "/live" ? styles.active : ""}`}>

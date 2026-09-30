@@ -12,7 +12,7 @@ export default function ProfilePage() {
       <aside className={styles.sidebar}>
         <div className={styles.logo}>WhatBoutMe</div>
         <nav className={styles.nav}>
-          <Link href="/dashboard" className={`${styles.navItem} ${pathname === '/dashboard' ? styles.active : ''}`}>
+          <Link href="/" className={`${styles.navItem} ${pathname === '/' ? styles.active : ''}`}>
             Dashboard
           </Link>
           <Link href="/live" className={`${styles.navItem} ${pathname === '/live' ? styles.active : ''}`}>

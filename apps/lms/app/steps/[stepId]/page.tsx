@@ -11,6 +11,7 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
   const [step, setStep] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [playbackId, setPlaybackId] = useState<string | null>(null);
+  const [videoStatus, setVideoStatus] = useState<string>('ready'); // 'ready', 'processing', 'error'
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [quizResult, setQuizResult] = useState<{ passed: boolean; score: number; message: string } | null>(null);
 
@@ -39,17 +40,19 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
             .then(muxData => {
               if (muxData.status === 'ready' && muxData.playbackId) {
                 setPlaybackId(muxData.playbackId);
+                setVideoStatus('ready');
               } else {
-                setPlaybackId("DS00Spx1CV902MCtPj5WknGlR102V5HFkDe"); // Fallback if still processing
+                setVideoStatus('processing');
               }
               setLoading(false);
             })
             .catch(() => {
-              setPlaybackId("DS00Spx1CV902MCtPj5WknGlR102V5HFkDe"); // Fallback
+              setVideoStatus('error');
               setLoading(false);
             });
         } else if (lesson) {
           setPlaybackId(lesson.mediaUrl);
+          setVideoStatus('ready');
           setLoading(false);
         } else {
           setLoading(false);
@@ -116,7 +119,7 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
   return (
     <div className={styles.container}>
       <header className={styles.header}>
-        <Link href="/dashboard" className={styles.backBtn}>← Back to Roadmap</Link>
+        <Link href="/" className={styles.backBtn}>← Back to Roadmap</Link>
         <h1 className={styles.title}>Step {step.sequence}: {step.title}</h1>
         <p className={styles.subtitle}>{step.description}</p>
       </header>
@@ -125,11 +128,33 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
         <div className={styles.mainColumn}>
           {lesson ? (
             <div className={styles.videoContainer}>
-              <MuxPlayer
-                playbackId={playbackId || "DS00Spx1CV902MCtPj5WknGlR102V5HFkDe"}
-                metadata={{ video_title: lesson.title }}
-                style={{ width: "100%", aspectRatio: "16/9" }}
-              />
+              {videoStatus === 'processing' && (
+                <div style={{ width: "100%", aspectRatio: "16/9", backgroundColor: "#1f2937", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 2s linear infinite", marginBottom: "10px" }}><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+                    <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
+                    <h3>Video is processing</h3>
+                    <p style={{ color: "#9ca3af", fontSize: "0.9rem" }}>This usually takes a minute or two. Please refresh the page shortly.</p>
+                  </div>
+                </div>
+              )}
+              {videoStatus === 'error' && (
+                <div style={{ width: "100%", aspectRatio: "16/9", backgroundColor: "#fee2e2", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "#b91c1c" }}>
+                  <div style={{ textAlign: "center" }}>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "10px" }}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    <h3>Failed to load video</h3>
+                    <p>There was a problem retrieving this video from Mux.</p>
+                  </div>
+                </div>
+              )}
+              {videoStatus === 'ready' && playbackId && (
+                <MuxPlayer
+                  playbackId={playbackId}
+                  metadata={{ video_title: lesson.title }}
+                  style={{ width: "100%", aspectRatio: "16/9", borderRadius: "12px", overflow: "hidden" }}
+                  accentColor="var(--accent-primary)"
+                />
+              )}
               <div style={{ marginTop: "10px", fontWeight: "bold" }}>{lesson.title}</div>
             </div>
           ) : (

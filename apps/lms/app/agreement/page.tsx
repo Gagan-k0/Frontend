@@ -50,7 +50,7 @@ export default function LearnerAgreement() {
             <input type="text" placeholder="e.g. John Doe" />
           </div>
           
-          <Link href="/dashboard" className={styles.submitBtn} style={{display: 'block', textAlign: 'center', textDecoration: 'none'}}>
+          <Link href="/" className={styles.submitBtn} style={{display: 'block', textAlign: 'center', textDecoration: 'none'}}>
             Sign & Enter Dashboard
           </Link>
         </form>
