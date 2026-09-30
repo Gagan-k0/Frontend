@@ -1,102 +1,60 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
 import styles from "./page.module.css";
 
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
+const MOCK_STEPS = [
+  { id: 1, sequence: 1, title: "Introduction to U", status: "completed", duration: "12m", type: "Video" },
+  { id: 2, sequence: 2, title: "Self Discovery", status: "in_progress", duration: "18m", type: "Video + Quiz" },
+  { id: 3, sequence: 3, title: "Resilience Building", status: "locked", duration: "25m", type: "Video" },
+  { id: 4, sequence: 4, title: "Overcoming Fear", status: "locked", duration: "15m", type: "PDF + Quiz" },
+  { id: 5, sequence: 5, title: "The Brain-Body Connection", status: "locked", duration: "22m", type: "Video" },
+];
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
-
+export default function LearnerDashboard() {
   return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
-
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/docs/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.dev/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+    <div className={styles.dashboard}>
+      <header className={styles.header}>
+        <div>
+          <h1 className={styles.title}>Welcome back, John!</h1>
+          <p className={styles.subtitle}>You are currently on Step 2 of the 11 Steps to U program.</p>
         </div>
-        <Button appName="docs" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.dev?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.dev →
-        </a>
-      </footer>
+        <button className={styles.resumeBtn}>Resume Step 2</button>
+      </header>
+
+      <section className={styles.progressSection}>
+        <div className={styles.progressCard}>
+          <div className={styles.progressInfo}>
+            <h3>Overall Progress</h3>
+            <span className={styles.percentage}>18%</span>
+          </div>
+          <div className={styles.progressBar}>
+            <div className={styles.progressFill} style={{ width: "18%" }}></div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.roadmap}>
+        <h2 className={styles.sectionTitle}>Your Journey</h2>
+        <div className={styles.stepsList}>
+          {MOCK_STEPS.map((step) => (
+            <div key={step.id} className={`${styles.stepCard} ${styles[step.status]}`}>
+              <div className={styles.stepSequence}>
+                {step.status === 'completed' ? '✓' : step.sequence}
+              </div>
+              <div className={styles.stepDetails}>
+                <p className={styles.stepTitle}>Step {step.sequence}: {step.title}</p>
+                <div className={styles.stepMeta}>
+                  <span className={styles.tag}>{step.type}</span>
+                  <span className={styles.duration}>{step.duration}</span>
+                </div>
+              </div>
+              <div className={styles.stepAction}>
+                {step.status === 'completed' && <span className={styles.statusCompleted}>Completed</span>}
+                {step.status === 'in_progress' && <button className={styles.continueBtn}>Continue</button>}
+                {step.status === 'locked' && <span className={styles.statusLocked}>🔒 Locked</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

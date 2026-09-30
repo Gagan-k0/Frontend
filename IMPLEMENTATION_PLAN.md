@@ -57,7 +57,21 @@
 
 ---
 
-## 2. Phase 1 — MVP (Sprints 0–8)
+## 2. Phase 1 — Demo MVP (Sprint 1)
+
+> **Phase Goal:** Build the visual frontend for the Marketing site, Learner Portal (LMS), and Admin Panel using mock data. This provides a stunning, clickable prototype for the client (Roweena) to review before any complex backend logic is connected.
+
+| # | Task | Details | PDF Ref |
+|---|------|---------|---------|
+| D-1 | **Marketing UI** | Build Home, About, Programs, and Contact pages with premium glassmorphism design. | §1 Public Website |
+| D-2 | **LMS Dashboard Shell** | Build the Sidebar, Header, and Layout for the learner portal. | §9 Learner Dashboard |
+| D-3 | **11 Steps Roadmap UI** | Build the visual roadmap showing locked and unlocked steps. | §4 11 Steps |
+| D-4 | **Video Player & Quiz UI** | Build the premium video viewing page and multiple-choice quiz component. | §4 11 Steps, §6 Quizzes |
+| D-5 | **Admin Dashboard Shell** | Build the Admin UI layout and mock tables for Users, Batches, and Programs. | §13 Admin Panel |
+
+---
+
+## 3. Phase 2 — Production Logic (Sprints 2–8)
 
 > **Phase Goal:** A learner can discover the program on the public site, sign up, pay via Stripe, sign the agreement, join a batch, work through all 11 steps with quizzes, and see their progress on a dashboard. Admin can manage all of this from the panel.
 >
