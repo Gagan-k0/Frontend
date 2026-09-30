@@ -30,6 +30,8 @@
 }
 
 .resumeBtn {
+  display: inline-block;
+  text-decoration: none;
   background: linear-gradient(135deg, #e94560, #ff8a00);
   color: white;
   border: none;
@@ -180,6 +182,8 @@
 }
 
 .continueBtn {
+  display: inline-block;
+  text-decoration: none;
   background: white;
   color: #0f172a;
   border: none;

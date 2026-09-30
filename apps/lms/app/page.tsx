@@ -1,4 +1,5 @@
 import styles from "./page.module.css";
+import Link from "next/link";
 
 const MOCK_STEPS = [
   { id: 1, sequence: 1, title: "Introduction to U", status: "completed", duration: "12m", type: "Video" },
@@ -16,7 +17,7 @@ export default function LearnerDashboard() {
           <h1 className={styles.title}>Welcome back, John!</h1>
           <p className={styles.subtitle}>You are currently on Step 2 of the 11 Steps to U program.</p>
         </div>
-        <button className={styles.resumeBtn}>Resume Step 2</button>
+        <Link href="/steps/2" className={styles.resumeBtn}>Resume Step 2</Link>
       </header>
 
       <section className={styles.progressSection}>
@@ -48,7 +49,7 @@ export default function LearnerDashboard() {
               </div>
               <div className={styles.stepAction}>
                 {step.status === 'completed' && <span className={styles.statusCompleted}>Completed</span>}
-                {step.status === 'in_progress' && <button className={styles.continueBtn}>Continue</button>}
+                {step.status === 'in_progress' && <Link href={`/steps/${step.sequence}`} className={styles.continueBtn}>Continue</Link>}
                 {step.status === 'locked' && <span className={styles.statusLocked}>🔒 Locked</span>}
               </div>
             </div>
