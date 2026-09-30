@@ -569,9 +569,9 @@
 | # | Task | Details |
 |---|------|---------|
 | S17-16 | **Data migration** | Migrate existing learner/booking data from GoDaddy (if any) per PRD §15 |
-| S17-17 | **DNS cutover** | Point `whatboutme.com` from GoDaddy to Vercel. Configure SSL. |
+| S17-17 | **DNS cutover** | Point `whatboutme.com` from GoDaddy to AWS CloudFront/Amplify. Configure SSL via ACM. |
 | S17-18 | **SPF/DKIM/DMARC** | Email authentication records for `whatboutme.com` sending domain |
-| S17-19 | **Neon PITR test** | Restore a backup to a test branch, verify data integrity |
+| S17-19 | **AWS RDS PITR test** | Restore a backup to a test instance, verify data integrity |
 | S17-20 | **Smoke tests on production** | Run the full E2E test suite against production data |
 | S17-21 | **Admin training session** | 1-hour video call training Roweena's team on the admin panel |
 | S17-22 | **Handover** | Source code access, setup guide, admin guide, architecture overview |
@@ -586,7 +586,7 @@
 - [ ] All pages work on Chrome, Safari, Firefox, Edge (desktop + mobile)
 - [ ] Stripe live mode processes real payments
 - [ ] DNS cutover complete, SSL working
-- [ ] Neon backup restore tested successfully
+- [ ] AWS RDS backup restore tested successfully
 - [ ] Admin training completed
 - [ ] Handover documents delivered
 
@@ -634,7 +634,7 @@
 | G3-5 | Security: no exposed secrets, rate limiting active | Helmet, CORS, throttle verified |
 | G3-6 | Stripe live mode processes real payments | Test with real card |
 | G3-7 | DNS cutover complete | `whatboutme.com` serves new site |
-| G3-8 | Backup tested: Neon PITR restore | Data integrity verified |
+| G3-8 | Backup tested: AWS RDS PITR restore | Data integrity verified |
 | G3-9 | Admin trained and comfortable | Training session completed |
 | G3-10 | All GoDaddy URLs redirect correctly | 301 redirects verified |
 
@@ -649,7 +649,7 @@
 | R3: Zoom API rate limits | Sprint 9–10 | BullMQ queue with sequential processing + 1s delay |
 | R4: Video piracy | Sprint 5–6 | Mux signed URLs, domain restriction, moving watermark |
 | R5: UAE PDPL compliance | Sprint 17–18 | Privacy policy, data deletion flow, retention policy |
-| R6: Neon cold starts | Sprint 0 | Always On for production, auto-suspend for dev/staging |
+| R6: AWS RDS cold connections | Sprint 0 | RDS Proxy handles connection pooling; ECS tasks pre-warmed |
 | R7: PDF watermark timeout | Sprint 5–6 | Background job (BullMQ), not request-time |
 | R8: Browser PDF viewer | Sprint 5–6 | Test react-pdf on Safari iOS, fallback "view in browser" |
 | R9: Quiz double-submit | Sprint 5–6 | Idempotent handler, DB unique constraint |
@@ -674,12 +674,12 @@ Every requirement from the PDF mapped to the sprint where it's built:
 | Guiding | Build modular | S0 | ⬜ |
 | Tech | Next.js frontend | S0 | ⬜ |
 | Tech | NestJS backend | S0 | ⬜ |
-| Tech | Neon PostgreSQL | S0 | ⬜ |
+| Tech | AWS RDS PostgreSQL | S0 | ⬜ |
 | Tech | Browser never talks to DB/Stripe/Zoom directly | S0 | ⬜ |
 | Tech | Separate job worker | S0 | ⬜ |
 | Tech | WebSockets for chat and notifications | S7–8, S15–16 | ⬜ |
 | Tech | Webhook endpoints for Stripe, Zoom | S3–4, S9–10 | ⬜ |
-| Tech | Neon branches (dev/staging/prod) | S0 | ⬜ |
+| Tech | AWS RDS instances (dev/staging/prod) | S0 | ⬜ |
 | Tech | Videos → secure streaming service | S5–6 | ⬜ |
 | Tech | PDFs/audio → private signed links | S5–6 | ⬜ |
 | Roles | 4 roles, server-checked every request | S0 | ⬜ |
@@ -760,7 +760,7 @@ Every requirement from the PDF mapped to the sprint where it's built:
 | Non-Functional | HTTPS only, secrets in env, input validation | S0, S17–18 | ⬜ |
 | Non-Functional | Timezone: store UTC, display user's timezone | S0 | ⬜ |
 | Non-Functional | Multi-currency (INR, AED, USD) | S3–4 | ⬜ |
-| Non-Functional | Daily backups, PITR, test restore before go-live | S0 (Neon), S17–18 (test) | ⬜ |
+| Non-Functional | Daily backups, PITR, test restore before go-live | S0 (AWS RDS), S17–18 (test) | ⬜ |
 | Non-Functional | Error tracking, uptime checks, alerts | S0 (Sentry) | ⬜ |
 | Non-Functional | Accessibility (readable fonts, captions, keyboard) | S1–2 (baseline), S17–18 (audit) | ⬜ |
 | Non-Functional | Handover (code repo, setup guide, admin guide, training) | S17–18 | ⬜ |

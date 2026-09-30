@@ -195,8 +195,8 @@ The following are **explicitly out of scope** for this platform. Stating these u
 | **Frontend** | Next.js (App Router) | Single app with 3 areas: public website, learner portal, admin panel (Roweena's Studio) |
 | **Backend API** | NestJS (TypeScript) | RESTful API with modular architecture; role-based access control on every endpoint |
 | **ORM** | Prisma | Type-safe database client, migrations, seeding |
-| **Database** | Neon (Serverless PostgreSQL) | All application data; separate branches for dev/staging/prod |
-| **Cache** | Redis (Upstash or similar) | Session store, rate limiting, job queue backend |
+| **Database** | AWS RDS (PostgreSQL) | All application data; separate instances for dev/staging/prod |
+| **Cache** | AWS ElastiCache (Redis) | Session store, rate limiting, job queue backend |
 | **Video Streaming** | Mux / Bunny Stream / Cloudflare Stream | Secure video hosting with signed playback links and domain restriction |
 | **Object Storage** | Private bucket (S3-compatible) | PDFs, audio, images, signed agreements, certificates — served via signed links only |
 | **Real-time** | WebSockets (via NestJS Gateway using Socket.IO) | Chat and live notifications |
@@ -236,7 +236,7 @@ The following are **explicitly out of scope** for this platform. Stating these u
        │          │          │           │
        ▼          ▼          ▼           ▼
 ┌──────────┐ ┌─────────┐ ┌──────────┐ ┌──────────────────┐
-│ Neon     │ │ Stripe  │ │ Zoom /   │ │ Outlook          │
+│ AWS RDS │ │ Stripe  │ │ Zoom /   │ │ Outlook          │
 │ Postgres │ │ API     │ │ G-Meet   │ │ (MS Graph)       │
 └──────────┘ └─────────┘ └──────────┘ └──────────────────┘
                                          
@@ -1015,7 +1015,7 @@ All accounts are **owned by WhatBoutMe** and paid by the client at actual cost. 
 - [ ] Display correct currency based on program / learner location
 
 ### 12.6 Backups
-- [ ] **Daily database backups** with point-in-time restore (Neon supports this natively)
+- [ ] **Daily database backups** with point-in-time restore (AWS RDS supports this natively)
 - [ ] **Test a restore before go-live**
 
 ### 12.7 Monitoring & Alerts
@@ -1069,7 +1069,7 @@ All accounts are **owned by WhatBoutMe** and paid by the client at actual cost. 
 | **Staging** | Live preview for Roweena to review before production | Staging URL (e.g., `staging.whatboutme.com`) |
 | **Production** | Live site | `whatboutme.com` |
 
-- Neon PostgreSQL: use **separate branches** for dev, staging, and production databases.
+- AWS RDS PostgreSQL: use **separate instances** for dev, staging, and production databases.
 - CI/CD pipeline for automated testing and deployment.
 - **Deployment strategy:** Zero-downtime deployments using rolling updates.
 - **Environment variables:** Managed via `.env` files locally, secure secrets manager in production.
@@ -1340,7 +1340,7 @@ Features classified using **MoSCoW** methodology, mapped to development phases. 
 | R3 | **Zoom API rate limits (100 req/min)** | Low | Medium | Queue meeting creation via BullMQ. Batch session creation (e.g., creating 20 sessions for a batch) processes sequentially with 1s delay between calls. | Creating sessions for a new batch of 30 learners could hit limits if done synchronously. |
 | R4 | **Video content piracy despite watermarks** | Medium | Medium | Set client expectation: watermarks trace leaks but can't prevent screen recording. Signed URLs expire in 15 minutes. Domain restriction blocks embedding elsewhere. | Industry-wide reality. Even Netflix can't prevent screen capture. The goal is traceability, not prevention. |
 | R5 | **UAE PDPL (Personal Data Protection Law) non-compliance** | Low | High | Store only necessary data. Enable data export/deletion on request. Privacy policy reviewed by UAE legal counsel before launch. | PDPL enforcement began in 2023. Fines can reach AED 10M for serious violations. |
-| R6 | **Neon PostgreSQL cold start latency** | Medium | Low | Use Neon's "Always On" compute for production. Only dev/staging use auto-suspend. First request after idle may take 1-3s. | Neon cold starts affect serverless compute. Production should use a provisioned endpoint. |
+| R6 | **AWS RDS connection pooling under load** | Low | Low | Use AWS RDS Proxy for connection pooling. ECS tasks pre-warmed. Multi-AZ ensures automatic failover. | RDS Proxy eliminates connection exhaustion issues common with serverless/containerized backends. |
 | R7 | **PDF watermarking timeout for large files** | Low | Medium | Process watermarking via BullMQ background job (not request-time). Serve un-watermarked if job hasn't completed yet; replace with watermarked once ready. | A 100-page PDF watermarking can take 10-15 seconds. Serverless functions typically timeout at 30s. |
 | R8 | **Browser compatibility for in-app PDF viewer** | Medium | Medium | Test `react-pdf` on Safari iOS, Chrome Android, Firefox, Edge. Have a fallback "view in browser" link if renderer fails. | Safari iOS has known issues with PDF.js canvas rendering on older devices. |
 | R9 | **Concurrent quiz submissions (double-click / race condition)** | Medium | High | Idempotent submission handler. First submission wins. Database-level unique constraint on `(enrolmentId, quizId, startedAt)` prevents duplicate attempts. | Common edge case when learners click "Submit" multiple times on slow mobile connections. |

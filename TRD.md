@@ -44,7 +44,7 @@ The `StepsService.checkUnlockStatus(userId, stepId)` must evaluate the following
 1. **Frontend:** Requests `GET /api/lessons/:id/signed-url`
 2. **Backend (NestJS):** Validates JWT and `checkUnlockStatus()`.
 3. **Mux (Video):** Generates a 15-minute expiring JWT for the Mux Video Player. The JWT payload must include `watermark: { text: user.email, opacity: 0.3 }`.
-4. **Cloudflare R2 (PDF/Audio):** Generates an AWS S3 API `GetObject` presigned URL expiring in 15 minutes.
+4. **AWS S3 (PDF/Audio):** Generates an AWS S3 `GetObject` presigned URL expiring in 15 minutes.
 *Constraint:* File endpoints must never return a permanent `.mp4` or `.pdf` link.
 
 ---

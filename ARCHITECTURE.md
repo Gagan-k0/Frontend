@@ -49,7 +49,7 @@
                                 │              │
                         ┌───────▼──────────────▼──────────┐
                         │      CDN / Edge Network          │
-                        │  (Vercel Edge / Cloudflare)      │
+                        │  (AWS CloudFront / Amplify)      │
                         └──────────────┬──────────────────┘
                                        │
                  ┌─────────────────────▼─────────────────────┐
@@ -148,13 +148,13 @@ ADRs document **why** key technology choices were made, what alternatives were c
 |-------|-------|
 | **Status** | Accepted |
 | **Context** | Need async job processing for: email sending, PDF generation (certificates, invoices), calendar sync, attendance import, session reminders, and watermarking. Must support scheduled/repeatable jobs (cron). |
-| **Decision** | **BullMQ** backed by Redis (Upstash). |
+| **Decision** | **BullMQ** backed by AWS ElastiCache (Redis). |
 | **Alternatives Considered** | |
 | — Agenda.js (MongoDB-backed) | Requires a separate MongoDB instance. Our stack is PostgreSQL + Redis. Adding MongoDB is unnecessary complexity. |
 | — pg-boss (PostgreSQL-backed) | Eliminates Redis dependency but adds load to the primary database. Job polling queries compete with application queries. |
-| — AWS SQS + Lambda | Serverless and scalable but adds AWS vendor lock-in. Lambda cold starts affect job latency. More complex local development. |
-| **Consequences** | Requires Redis (Upstash). Redis is also used for caching and session storage, so no additional infrastructure. BullMQ has excellent NestJS integration (`@nestjs/bullmq`). |
-| **Real-world edge case** | If Redis goes down, all jobs are queued in memory and replayed on reconnect. Upstash provides 99.99% uptime SLA. For critical jobs (payment confirmation), the webhook handler also writes directly to the database as a fallback. |
+| — AWS SQS + Lambda | Fully serverless and scalable but cold starts affect job latency. BullMQ gives more developer control and simpler local development. |
+| **Consequences** | Requires AWS ElastiCache (Redis). Redis is also used for caching and session storage, so no additional infrastructure cost. BullMQ has excellent NestJS integration (`@nestjs/bullmq`). |
+| **Real-world edge case** | If Redis goes down, all jobs are queued in memory and replayed on reconnect. ElastiCache provides Multi-AZ replication for 99.99% uptime. For critical jobs (payment confirmation), the webhook handler also writes directly to the database as a fallback. |
 
 ### ADR-005: Monorepo with Shared Types
 
@@ -1924,7 +1924,7 @@ flowchart TD
 
 ```
 Layer 1: CDN / Edge
-├── DDoS protection (Cloudflare / Vercel)
+├── DDoS protection (AWS CloudFront / WAF)
 ├── SSL/TLS termination
 └── Rate limiting (basic)
 
@@ -1942,7 +1942,7 @@ Layer 2: Application (NestJS)
 Layer 3: Data
 ├── Passwords: bcrypt (12 rounds)
 ├── Secrets: Environment variables (never in code)
-├── Database: Neon TLS connections only
+├── Database: AWS RDS TLS connections only (VPC isolated)
 ├── File access: Short-lived signed URLs
 ├── Webhooks: Signature verification
 └── 2FA: TOTP (RFC 6238) for admin accounts
@@ -1962,9 +1962,9 @@ Layer 4: Monitoring
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                   Vercel (Frontend)                   │
+│              AWS Amplify (Frontend)                   │
 │  ┌─────────────────────────────────────────────────┐ │
-│  │  Next.js App                                     │ │
+│  │  Next.js Apps (lms, marketing, admin)             │ │
 │  │  - SSR for public pages (Edge runtime)           │ │
 │  │  - CSR for portal/admin                          │ │
 │  │  - Preview deployments per PR                    │ │
@@ -1972,29 +1972,29 @@ Layer 4: Monitoring
 └──────────────────────┬──────────────────────────────┘
                        │ API calls
 ┌──────────────────────▼──────────────────────────────┐
-│              Railway / Render / Fly.io               │
+│              AWS ECS Fargate (Backend)                │
 │  ┌─────────────────────────────────────────────────┐ │
-│  │  NestJS API Server (Dockerfile)                  │ │
-│  │  - Auto-scaling                                  │ │
-│  │  - Health check endpoint                         │ │
-│  │  - Zero-downtime deploy                          │ │
+│  │  NestJS API Server (Docker Container)             │ │
+│  │  - Auto-scaling via ECS Service                  │ │
+│  │  - Health check via ALB target group             │ │
+│  │  - Zero-downtime rolling deploy                  │ │
 │  └─────────────────────────────────────────────────┘ │
 │  ┌─────────────────────────────────────────────────┐ │
 │  │  BullMQ Worker (same codebase, worker entry)     │ │
-│  │  - Separate process for job processing           │ │
+│  │  - Separate ECS task for job processing          │ │
 │  └─────────────────────────────────────────────────┘ │
 └──────────────────────┬──────────────────────────────┘
                        │
      ┌─────────────────┼──────────────────┐
      ▼                 ▼                  ▼
 ┌─────────┐   ┌──────────────┐   ┌───────────────┐
-│  Neon   │   │ Upstash      │   │ AWS S3 /      │
-│ Postgres│   │ Redis        │   │ Cloudflare R2 │
-│         │   │              │   │               │
-│ Branches│   │ - Sessions   │   │ - PDFs        │
-│ dev     │   │ - Job queues │   │ - Audio       │
-│ staging │   │ - Rate limit │   │ - Agreements  │
-│ prod    │   │ - Cache      │   │ - Certificates│
+│ AWS RDS │   │ AWS          │   │ AWS S3        │
+│ Postgres│   │ ElastiCache  │   │               │
+│         │   │ (Redis)      │   │               │
+│ Private │   │ - Sessions   │   │ - PDFs        │
+│ VPC     │   │ - Job queues │   │ - Audio       │
+│ Subnet  │   │ - Rate limit │   │ - Agreements  │
+│         │   │ - Cache      │   │ - Certificates│
 └─────────┘   └──────────────┘   └───────────────┘
 ```
 
@@ -2023,7 +2023,7 @@ flowchart LR
 |------|---------|-------------|
 | **Sentry** | Error tracking (frontend + backend) | Automatic error capture, source maps |
 | **Uptime Robot / Better Uptime** | Uptime monitoring | Ping `/api/health` every 1 minute |
-| **Neon Dashboard** | Database metrics | Built-in query insights |
+| **AWS CloudWatch** | Database + ECS metrics | RDS Performance Insights, container monitoring |
 | **BullMQ Board** | Job queue monitoring | Failed/completed/delayed jobs |
 | **Custom Logs** | Application logging | Structured JSON logs to stdout |
 | **Alerts** | Incident notifications | Slack/Email alerts to Foxwel.AI |
@@ -2052,7 +2052,7 @@ GET /api/health → 200 OK
 | **Images** | Next.js Image component (auto WebP, lazy load, CDN) |
 | **Videos** | Stream via CDN (Mux); never serve from origin |
 | **PDFs** | Render page-by-page in viewer; lazy-load pages |
-| **Database** | Connection pooling via Neon; indexed queries |
+| **Database** | Connection pooling via RDS Proxy; indexed queries |
 | **API responses** | Redis cache for expensive queries (dashboard stats, reports) |
 | **Bundle size** | Dynamic imports for admin-only components |
 | **Mobile** | Target < 3s first contentful paint on 3G |
@@ -2094,35 +2094,33 @@ GET /api/health → 200 OK
 
 | Component | Year 1 Capacity | Scaling Trigger | Upgrade Path |
 |-----------|:---------------:|-----------------|---------------|
-| **NestJS API** | 1 instance (2 vCPU, 1GB RAM) | >70% CPU sustained | Add instances behind load balancer (Railway/Render auto-scaling) |
-| **BullMQ Worker** | 1 instance (1 vCPU, 512MB) | Job queue backlog >100 | Add worker instances (stateless, safe to scale horizontally) |
-| **Neon PostgreSQL** | 0.25 CU (auto-scaling) | >500 concurrent connections | Increase compute units. Add read replicas for reports. |
-| **Upstash Redis** | Free tier (10K commands/day) | >10K commands/day | Upgrade to Pro ($10/month, 10M commands/day) |
+| **NestJS API** | 1 ECS task (2 vCPU, 1GB RAM) | >70% CPU sustained | ECS auto-scaling adds tasks behind ALB |
+| **BullMQ Worker** | 1 ECS task (1 vCPU, 512MB) | Job queue backlog >100 | Add worker tasks (stateless, safe to scale horizontally) |
+| **AWS RDS PostgreSQL** | db.t4g.micro (2 vCPU, 1GB) | >500 concurrent connections | Scale instance class. Add read replicas for reports. |
+| **AWS ElastiCache Redis** | cache.t4g.micro | >10K commands/sec | Scale node type or add cluster replicas |
 | **WebSocket (Socket.IO)** | Single server, in-memory adapter | >500 concurrent connections | Add **Redis Adapter** (`@socket.io/redis-adapter`) for multi-instance |
-| **Object Storage (R2/S3)** | No limit | N/A | S3/R2 scales infinitely |
+| **AWS S3** | No limit | N/A | S3 scales infinitely |
 | **Video CDN (Mux)** | Pay-per-minute | N/A | Mux scales infinitely |
 
 ### 19.2 Database Connection Management
 
 ```typescript
-// prisma/schema.prisma — connection pooling for Neon
+// prisma/schema.prisma — connection pooling for AWS RDS
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL")        // Pooled connection string
-  directUrl = env("DIRECT_DATABASE_URL") // Direct connection for migrations
+  url       = env("DATABASE_URL")        // RDS Proxy pooled connection
 }
 ```
 
-- **Pooled connections** via Neon's built-in PgBouncer for API requests
-- **Direct connections** for Prisma migrations only
-- **Connection limit:** Neon auto-manages pooling. API server uses `connection_limit=10` per instance.
+- **Pooled connections** via AWS RDS Proxy for API requests (prevents connection exhaustion)
+- **Connection limit:** RDS Proxy auto-manages pooling. Each ECS task uses `connection_limit=10`.
 
 ### 19.3 What NOT to Over-Engineer
 
 | Temptation | Why We Avoid It |
 |---|---|
 | Microservices | 2-3 developers, <500 users. Modular monolith provides the same code isolation without network overhead. If a module needs independent scaling later, extract it. |
-| Kubernetes | Railway/Render provide Docker deployment with auto-scaling. K8s is overkill for a single API + worker. |
+| Kubernetes (EKS) | ECS Fargate provides Docker deployment with auto-scaling without managing cluster nodes. EKS is overkill for a single API + worker. |
 | GraphQL | REST is simpler, better cached, and sufficient for a first-party frontend. GraphQL adds resolver complexity. |
 | Event sourcing | CRUD with audit log achieves the same traceability without the complexity of event replay and projections. |
 
@@ -2218,9 +2216,8 @@ async getDashboardStats(): Promise<DashboardStats> {
 
 | Variable | Example | Used By | Notes |
 |----------|---------|---------|-------|
-| `DATABASE_URL` | `postgresql://...@ep-xxx.neon.tech/...?sslmode=require` | API, Worker | Pooled connection URL |
-| `DIRECT_DATABASE_URL` | `postgresql://...@ep-xxx.neon.tech/...?sslmode=require` | Prisma CLI | Direct connection for migrations |
-| `REDIS_URL` | `rediss://default:xxx@xxx.upstash.io:6379` | API, Worker | Upstash Redis connection |
+| `DATABASE_URL` | `postgresql://...@xxx.rds.amazonaws.com/...?sslmode=require` | API, Worker | RDS Proxy pooled connection URL |
+| `REDIS_URL` | `rediss://xxx.cache.amazonaws.com:6379` | API, Worker | AWS ElastiCache Redis connection |
 | `JWT_SECRET` | `<random 64-char string>` | API | Access token signing |
 | `JWT_REFRESH_SECRET` | `<random 64-char string>` | API | Refresh token signing |
 | `STRIPE_SECRET_KEY` | `sk_live_...` | API | Stripe API (server-side only) |
@@ -2238,7 +2235,7 @@ async getDashboardStats(): Promise<DashboardStats> {
 | `MUX_TOKEN_SECRET` | `...` | API | Mux video API |
 | `MUX_SIGNING_KEY_ID` | `...` | API | Mux signed playback URLs |
 | `MUX_SIGNING_PRIVATE_KEY` | `...` | API | Mux signed playback URLs |
-| `S3_ENDPOINT` | `https://xxx.r2.cloudflarestorage.com` | API, Worker | R2/S3 endpoint |
+| `S3_ENDPOINT` | `https://s3.us-east-1.amazonaws.com` | API, Worker | AWS S3 endpoint |
 | `S3_ACCESS_KEY_ID` | `...` | API, Worker | R2/S3 credentials |
 | `S3_SECRET_ACCESS_KEY` | `...` | API, Worker | R2/S3 credentials |
 | `S3_BUCKET_NAME` | `whatboutme-storage` | API, Worker | Bucket name |
@@ -2250,7 +2247,7 @@ async getDashboardStats(): Promise<DashboardStats> {
 
 | Variable | Development | Staging | Production |
 |----------|------------|---------|------------|
-| `DATABASE_URL` | Neon `dev` branch | Neon `staging` branch | Neon `main` branch |
+| `DATABASE_URL` | RDS `dev` instance | RDS `staging` instance | RDS `prod` instance |
 | `STRIPE_SECRET_KEY` | `sk_test_...` | `sk_test_...` | `sk_live_...` |
 | `FRONTEND_URL` | `http://localhost:3000` | `https://staging.whatboutme.com` | `https://whatboutme.com` |
 | `NODE_ENV` | `development` | `staging` | `production` |
@@ -2263,16 +2260,16 @@ async getDashboardStats(): Promise<DashboardStats> {
 
 | Metric | Target | Rationale |
 |--------|--------|----------|
-| **RPO** (Recovery Point Objective) | 1 hour | Maximum acceptable data loss. Neon supports point-in-time restore (PITR) to any point in the last 7 days. |
+| **RPO** (Recovery Point Objective) | 1 hour | Maximum acceptable data loss. AWS RDS supports automated backups and point-in-time restore (PITR) to any point in the last 35 days. |
 | **RTO** (Recovery Time Objective) | 4 hours | Maximum acceptable downtime. Includes: diagnosis (1h), restore (1h), verification (1h), DNS propagation (1h). |
 
 ### 23.2 Backup Strategy
 
 | Component | Backup Method | Frequency | Retention |
 |-----------|--------------|-----------|----------|
-| **Database (Neon)** | Neon built-in PITR | Continuous (WAL-based) | 7 days (Neon Pro), 30 days (Neon Scale) |
-| **Object Storage (R2/S3)** | R2/S3 versioning enabled | Continuous | 90 days for deleted objects |
-| **Redis (Upstash)** | Upstash built-in persistence | Continuous | N/A (session data is transient) |
+| **Database (AWS RDS)** | RDS automated backups + PITR | Continuous (WAL-based) | 35 days (configurable) |
+| **Object Storage (S3)** | S3 versioning enabled | Continuous | 90 days for deleted objects |
+| **Redis (ElastiCache)** | ElastiCache automatic backup | Daily snapshot | 35 days |
 | **Video assets (Mux)** | Mux retains source files | Permanent | Until deleted via API |
 | **Source code** | Git (GitHub/GitLab) | Every push | Indefinite |
 | **Environment variables** | Secrets manager export | Monthly manual export | 12 months |
@@ -2281,22 +2278,22 @@ async getDashboardStats(): Promise<DashboardStats> {
 
 | Scenario | Recovery Procedure | Estimated Downtime |
 |----------|-------------------|-------------------|
-| **Neon database outage** | Wait for Neon recovery (they have 99.95% SLA). If prolonged, restore PITR backup to a standalone PostgreSQL instance. Update `DATABASE_URL`. | 1-4 hours |
-| **API server crash** | Railway/Render auto-restarts. If hosting provider is down, redeploy to alternative (Fly.io) using Docker image. | 5-30 minutes |
-| **Redis (Upstash) outage** | Sessions expire (users re-login). Jobs queue in memory and replay on reconnect. No data loss. | 0 min (degraded mode) |
-| **Accidental data deletion** | Neon PITR restore to 1 minute before deletion. | 1-2 hours |
+| **AWS RDS database outage** | RDS Multi-AZ failover triggers automatically within 60 seconds. If region-wide, restore from automated backup to a new region. Update `DATABASE_URL`. | 1-5 minutes (Multi-AZ) |
+| **API server crash** | ECS auto-restarts failed tasks. ALB health checks route traffic to healthy tasks only. | 1-5 minutes |
+| **Redis (ElastiCache) outage** | ElastiCache Multi-AZ replica promotes automatically. Sessions expire (users re-login). Jobs queue in memory and replay on reconnect. | 0 min (degraded mode) |
+| **Accidental data deletion** | RDS PITR restore to 1 minute before deletion. | 1-2 hours |
 | **Domain DNS issue** | Cloudflare DNS has 100% SLA. If registrar issue, contact GoDaddy/registrar support. | Variable |
 | **Mux video service outage** | Videos unavailable. Learners see "Video temporarily unavailable" message. Progress tracking still works. | 0 min (degraded mode) |
 
 ### 23.4 Pre-Launch Checklist
 
-- [ ] Test Neon PITR restore to a fresh branch — verify data integrity
-- [ ] Test Docker image deployment to an alternative hosting provider
-- [ ] Verify R2/S3 versioning is enabled on the production bucket
+- [ ] Test RDS PITR restore to a new instance — verify data integrity
+- [ ] Test Docker image deployment to ECS with rolling update
+- [ ] Verify S3 versioning is enabled on the production bucket
 - [ ] Document runbook for each disaster scenario above
 - [ ] Set up uptime monitoring alerts (5-minute check interval)
 
-> **Edge case:** Roweena accidentally deletes a published course with 50 enrolled learners. **Recovery:** Neon PITR restores the course record. Enrolments and progress are intact because they're in the same database. Object storage files (videos, PDFs) are unaffected (separate system). Estimated recovery: 30 minutes.
+> **Edge case:** Roweena accidentally deletes a published course with 50 enrolled learners. **Recovery:** RDS PITR restores the course record. Enrolments and progress are intact because they're in the same database. S3 files (PDFs, certificates) are unaffected (separate system with versioning). Estimated recovery: 30 minutes.
 
 ---
 
