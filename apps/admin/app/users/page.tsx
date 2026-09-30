@@ -71,7 +71,13 @@ export default function UsersPage() {
                     </div>
                   </td>
                   <td className={styles.alignRight}>
-                    <Link href={`/users/${user.id}`} className={styles.secondaryBtn} style={{padding: '0.4rem 0.8rem', fontSize: '0.8rem'}}>View Details</Link>
+                    <Link href={`/users/${user.id}`} className={styles.iconActionBtn} title="View Details">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="5" cy="12" r="2"></circle>
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <circle cx="19" cy="12" r="2"></circle>
+                      </svg>
+                    </Link>
                   </td>
                 </tr>
               ))}

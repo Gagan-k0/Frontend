@@ -52,7 +52,13 @@ export default function ProgramsPage() {
                     </span>
                   </td>
                   <td className={styles.alignRight}>
-                    <button className={styles.secondaryBtn} style={{padding: '0.4rem 0.8rem', fontSize: '0.8rem'}}>Edit Curriculum</button>
+                    <button className={styles.iconActionBtn} title="More Actions">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="5" cy="12" r="2"></circle>
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <circle cx="19" cy="12" r="2"></circle>
+                      </svg>
+                    </button>
                   </td>
                 </tr>
               ))}
