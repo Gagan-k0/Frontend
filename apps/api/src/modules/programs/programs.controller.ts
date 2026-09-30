@@ -59,4 +59,9 @@ export class ProgramsController {
   createLesson(@Param('stepId') stepId: string, @Body() data: any) {
     return this.programsService.createLesson(stepId, data);
   }
+
+  @Delete('lessons/:lessonId')
+  removeLesson(@Param('lessonId') lessonId: string) {
+    return this.programsService.removeLesson(lessonId);
+  }
 }

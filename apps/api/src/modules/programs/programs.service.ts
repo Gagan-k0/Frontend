@@ -120,4 +120,10 @@ export class ProgramsService {
       }
     });
   }
+
+  removeLesson(lessonId: string) {
+    return this.prisma.lesson.delete({
+      where: { id: lessonId }
+    });
+  }
 }

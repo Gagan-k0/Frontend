@@ -16,6 +16,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
   const resolvedParams = use(params);
   const { id: programId, stepId } = resolvedParams;
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [quiz, setQuiz] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploadUrl, setUploadUrl] = useState("");
@@ -29,15 +30,32 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
 
   const fetchLessons = async () => {
     try {
-      const res = await fetch(`http://localhost:4000/programs/steps/${stepId}/lessons`);
+      const res = await fetch(`http://localhost:4000/programs/steps/${stepId}`);
       if (res.ok) {
         const data = await res.json();
-        setLessons(data);
+        setLessons(data.lessons || []);
+        setQuiz(data.quiz || null);
       }
     } catch (e) {
       console.error(e);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeleteLesson = async (lessonId: string) => {
+    if (!confirm("Are you sure you want to delete this lesson?")) return;
+    try {
+      const res = await fetch(`http://localhost:4000/programs/lessons/${lessonId}`, {
+        method: "DELETE"
+      });
+      if (res.ok) {
+        fetchLessons();
+      } else {
+        alert("Failed to delete lesson");
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -129,10 +147,32 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
                   <td><span className={styles.cellTextMuted}>{lesson.type}</span></td>
                   <td><span className={`${styles.statusChip} ${styles.active}`}>Ready</span></td>
                   <td className={styles.alignRight}>
-                    <button className={styles.secondaryBtn} style={{color: 'red'}}>Delete</button>
+                    <button className={styles.secondaryBtn} style={{color: 'red'}} onClick={() => handleDeleteLesson(lesson.id)}>Delete</button>
                   </td>
                 </tr>
               ))}
+              
+              {/* Render Quiz if it exists */}
+              {quiz && (
+                <tr style={{ background: "var(--bg-main)" }}>
+                  <td>
+                    <span className={styles.cellUserName}>{quiz.title}</span>
+                    <br/>
+                    <small style={{color: "var(--text-secondary)"}}>{quiz.questions?.length || 0} Questions</small>
+                  </td>
+                  <td><span className={styles.cellTextMuted}>QUIZ</span></td>
+                  <td><span className={`${styles.statusChip} ${styles.active}`}>Ready</span></td>
+                  <td className={styles.alignRight}>
+                    <Link href={`/quizzes/${quiz.id}/edit`} className={styles.secondaryBtn} style={{marginRight: '10px', textDecoration: 'none'}}>Edit</Link>
+                    <button className={styles.secondaryBtn} style={{color: 'red'}} onClick={async () => {
+                      if(confirm('Delete this quiz?')) {
+                        await fetch(`http://localhost:4000/quizzes/${quiz.id}`, { method: 'DELETE' });
+                        fetchLessons();
+                      }
+                    }}>Delete</button>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
