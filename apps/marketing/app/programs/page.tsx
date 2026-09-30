@@ -1,7 +1,27 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import styles from "../page.module.css";
 import Link from "next/link";
 
 export default function ProgramsPage() {
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("http://localhost:4000/programs")
+      .then(res => res.json())
+      .then(data => {
+        // filter out inactive programs if needed
+        setPrograms(data.filter((p: any) => p.isActive));
+        setIsLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch programs", err);
+        setIsLoading(false);
+      });
+  }, []);
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -21,19 +41,18 @@ export default function ProgramsPage() {
           <p className={styles.subtitle}>Choose the path that fits your goals.</p>
           
           <div className={styles.featuresGrid} style={{marginTop: '4rem'}}>
-            <div className={styles.featureCard}>
-              <h3>11 Steps to U (Flagship)</h3>
-              <p>A comprehensive 11-module certification program designed to rebuild your confidence and direction.</p>
-              <h2 style={{margin: '1.5rem 0'}}>$1,999</h2>
-              <Link href="http://localhost:3000/signup" className={styles.ctaBtn} style={{display: 'inline-block', textDecoration: 'none'}}>Enroll Now</Link>
-            </div>
-            
-            <div className={styles.featureCard}>
-              <h3>Resilience Workshop</h3>
-              <p>A 3-day intensive corporate training for teams navigating high-stress environments.</p>
-              <h2 style={{margin: '1.5rem 0'}}>$499</h2>
-              <Link href="/contact" className={styles.ctaBtn} style={{display: 'inline-block', textDecoration: 'none'}}>Contact Us</Link>
-            </div>
+            {isLoading ? (
+              <p>Loading programs...</p>
+            ) : programs.length === 0 ? (
+              <p>No active programs found.</p>
+            ) : programs.map((prog) => (
+              <div key={prog.id} className={styles.featureCard}>
+                <h3>{prog.title}</h3>
+                <p>{prog.description || "A comprehensive program designed to guide you forward."}</p>
+                <h2 style={{margin: '1.5rem 0'}}>${prog.price}</h2>
+                <Link href={`http://localhost:3000/checkout?programId=${prog.id}`} className={styles.ctaBtn} style={{display: 'inline-block', textDecoration: 'none'}}>Enroll Now</Link>
+              </div>
+            ))}
           </div>
         </section>
       </main>

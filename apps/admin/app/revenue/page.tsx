@@ -1,23 +1,83 @@
-import styles from "../page.module.css";
+"use client";
 
-const MOCK_REVENUE = [
-  { id: "inv_123", user: "John Doe", amount: "$1,999", date: "Oct 12, 2026", status: "Paid", method: "Stripe (Card)" },
-  { id: "inv_124", user: "Sarah Smith", amount: "$1,999", date: "Oct 12, 2026", status: "Paid", method: "Stripe (Card)" },
-  { id: "inv_125", user: "Mike Johnson", amount: "$1,999", date: "Oct 14, 2026", status: "Pending", method: "Invoice" },
-];
+import { useEffect, useState } from "react";
+import styles from "../page.module.css";
+import Link from "next/link";
 
 export default function RevenuePage() {
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRevenue();
+  }, []);
+
+  const fetchRevenue = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/revenue");
+      if (res.ok) {
+        const json = await res.json();
+        setData(json);
+      }
+    } catch (e) {
+      console.error("Failed to fetch revenue", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className={styles.dashboard}>
       <header className={styles.header}>
         <div className={styles.headerText}>
-          <h1 className={styles.title}>Revenue & Payments</h1>
-          <p className={styles.subtitle}>Track Stripe transactions and pending invoices.</p>
+          <h1 className={styles.title}>Revenue</h1>
+          <p className={styles.subtitle}>Overview of sales, MRR, and recent transactions.</p>
         </div>
         <div className={styles.headerActions}>
           <button className={styles.secondaryBtn}>Export CSV</button>
         </div>
       </header>
+
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <h3>Total Revenue</h3>
+            <span className={styles.statIcon}>💳</span>
+          </div>
+          <div className={styles.statBody}>
+            <p className={styles.statValue}>{data ? data.totalRevenue : "..."}</p>
+            <div className={styles.statTrendWrapper}>
+              <span className={styles.statTrendPositive}>All Time</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <h3>Monthly Recurring (MRR)</h3>
+            <span className={styles.statIcon}>🔄</span>
+          </div>
+          <div className={styles.statBody}>
+            <p className={styles.statValue}>{data ? data.mrr : "..."}</p>
+            <div className={styles.statTrendWrapper}>
+              <span className={styles.statTrendNeutral}>Estimated</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statHeader}>
+            <h3>Active Subscribers</h3>
+            <span className={styles.statIcon}>👥</span>
+          </div>
+          <div className={styles.statBody}>
+            <p className={styles.statValue}>{data ? data.activeSubscribers : "..."}</p>
+            <div className={styles.statTrendWrapper}>
+              <span className={styles.statTrendPositive}>Paid Users</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <section className={styles.tableSection}>
         <div className={styles.sectionHeader}>
@@ -28,39 +88,35 @@ export default function RevenuePage() {
           <table className={styles.adminTable}>
             <thead>
               <tr>
-                <th>Invoice ID</th>
+                <th>Transaction ID</th>
                 <th>Learner</th>
                 <th>Amount</th>
-                <th>Date</th>
-                <th>Method</th>
                 <th>Status</th>
-                <th className={styles.alignRight}>Action</th>
+                <th>Date</th>
               </tr>
             </thead>
             <tbody>
-              {MOCK_REVENUE.map((tx) => (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} style={{textAlign: "center", padding: "20px"}}>Loading transactions...</td>
+                </tr>
+              ) : !data || data.transactions.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{textAlign: "center", padding: "20px"}}>No transactions found.</td>
+                </tr>
+              ) : data.transactions.map((tx: any) => (
                 <tr key={tx.id}>
-                  <td><span className={styles.cellTextMuted}>{tx.id}</span></td>
+                  <td>
+                    <span className={styles.cellText}>{tx.description}</span>
+                  </td>
                   <td><span className={styles.cellUserName}>{tx.user}</span></td>
                   <td><span className={styles.cellText}>{tx.amount}</span></td>
-                  <td><span className={styles.cellTextMuted}>{tx.date}</span></td>
-                  <td><span className={styles.cellTextMuted}>{tx.method}</span></td>
                   <td>
-                    <span className={`${styles.statusChip} ${tx.status === 'Paid' ? styles.completed : styles.pending}`}>
+                    <span className={`${styles.statusChip} ${styles[tx.status.toLowerCase()] || styles.active}`}>
                       {tx.status}
                     </span>
                   </td>
-                  <td className={styles.alignRight}>
-                    <button className={styles.iconActionBtn} title="Download Receipt">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{opacity: 0.6}}>
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                      </svg>
-                    </button>
-                  </td>
+                  <td><span className={styles.cellTextMuted}>{tx.date}</span></td>
                 </tr>
               ))}
             </tbody>

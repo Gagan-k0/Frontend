@@ -61,6 +61,45 @@ enum ContentType {
   AUDIO
 }
 
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+enum AgreementStatus {
+  PENDING
+  SIGNED
+}
+
+enum NotificationChannel {
+  EMAIL
+  IN_APP
+  BOTH
+}
+
+enum DeliveryStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  BOUNCED
+  FAILED
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CONVERTED
+  CLOSED
+}
+
 // -----------------------------------------------------------------------------
 // CORE ENTITIES (USERS & COMPANIES)
 // -----------------------------------------------------------------------------
@@ -88,6 +127,7 @@ model User {
   managedBatches Batch[]     @relation("ManagerBatches")
   enrolments     Enrolment[]
   messagesSent   Message[]
+  notifications  Notification[]
   
   // Soft Delete for GDPR
   deletedAt DateTime?
@@ -213,7 +253,8 @@ model Enrolment {
   batch          Batch           @relation(fields: [batchId], references: [id])
   
   status         EnrolmentStatus @default(PENDING_PAYMENT)
-  agreementUrl   String?         // AWS S3 URL to signed PDF
+  
+  agreement      Agreement?
   
   attempts       Attempt[]
   lessonProgress UserLessonProgress[]
@@ -321,6 +362,7 @@ model Payment {
   id             String    @id @default(uuid())
   enrolmentId    String
   enrolment      Enrolment @relation(fields: [enrolmentId], references: [id], onDelete: Cascade)
+  invoice        Invoice?
   
   stripeSessionId String   @unique
   amount         Float
@@ -364,5 +406,91 @@ model Message {
   read           Boolean      @default(false)
   
   createdAt      DateTime     @default(now())
+}
+
+// -----------------------------------------------------------------------------
+// MISSING PRD ENTITIES (INVOICE, COUPON, AGREEMENT, NOTIFICATION, AUDIT, LEAD)
+// -----------------------------------------------------------------------------
+
+model Invoice {
+  id              String    @id @default(uuid())
+  paymentId       String    @unique
+  payment         Payment   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  
+  invoiceNumber   String    @unique
+  amount          Float
+  currency        String    @default("USD")
+  taxFields       Json?
+  pdfUrl          String?
+  status          InvoiceStatus @default(DRAFT)
+  creditNoteId    String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Coupon {
+  id              String    @id @default(uuid())
+  code            String    @unique
+  type            CouponType
+  value           Float
+  usageLimit      Int?
+  usedCount       Int       @default(0)
+  expiryDate      DateTime?
+  
+  createdAt       DateTime  @default(now())
+}
+
+model Agreement {
+  id              String    @id @default(uuid())
+  enrolmentId     String    @unique
+  enrolment       Enrolment @relation(fields: [enrolmentId], references: [id], onDelete: Cascade)
+  
+  templateVersion String
+  signedPdfUrl    String?
+  signedAt        DateTime?
+  signerIp        String?
+  status          AgreementStatus @default(PENDING)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Notification {
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type            String
+  template        String
+  channel         NotificationChannel @default(EMAIL)
+  schedule        DateTime?
+  deliveryStatus  DeliveryStatus @default(QUEUED)
+  sentAt          DateTime?
+  
+  createdAt       DateTime  @default(now())
+}
+
+model AuditLog {
+  id              String    @id @default(uuid())
+  actorId         String?   // Can be null if system action
+  action          String
+  targetEntity    String
+  targetId        String
+  details         Json?
+  
+  timestamp       DateTime  @default(now())
+}
+
+model Lead {
+  id              String    @id @default(uuid())
+  name            String
+  email           String
+  phone           String?
+  message         String?
+  status          LeadStatus @default(NEW)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 ```

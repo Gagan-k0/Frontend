@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import styles from "./layout.module.css";
-import Link from "next/link";
+import LmsSidebar from "./LmsSidebar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,38 +27,24 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <div className={styles.appContainer}>
-          {/* Sidebar */}
-          <aside className={styles.sidebar}>
-            <div className={styles.logo}>WhatBoutMe</div>
-            
-            <div className={styles.userProfile}>
-              <div className={styles.avatar}>JD</div>
-              <div className={styles.userInfo}>
-                <h4>John Doe</h4>
-                <p>Alpha Cohort 2026</p>
-              </div>
-            </div>
+          {/* Client-side Sidebar with real user data */}
+          <LmsSidebar />
 
-            <nav className={styles.navMenu}>
-              <div className={styles.navGroup}>
-                <p className={styles.navTitle}>LEARNING</p>
-                <Link href="/" className={`${styles.navItem} ${styles.active}`}>My Programs</Link>
-                <Link href="/live" className={styles.navItem}>Live Sessions</Link>
-                <Link href="/certificates" className={styles.navItem}>Certificates</Link>
-              </div>
-              
-              <div className={styles.navGroup}>
-                <p className={styles.navTitle}>COMMUNITY</p>
-                <Link href="/chat" className={styles.navItem}>Messages <span className={styles.badge}>2</span></Link>
-                <Link href="/forum" className={styles.navItem}>Discussion</Link>
-              </div>
-            </nav>
-            
-            <div className={styles.logoutBtn}>Sign Out</div>
-          </aside>
-
-          {/* Main Content Area */}
           <main className={styles.mainContent}>
+            <header className={styles.topbar}>
+              <div className={styles.searchContainer}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" placeholder="Search programs, sessions, or topics..." />
+              </div>
+              <div className={styles.topbarActions}>
+                <div className={styles.notificationIcon}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                  <div className={styles.notificationDot}></div>
+                </div>
+                <div className={styles.topAvatar}>G</div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{cursor: 'pointer'}}><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+            </header>
             {children}
           </main>
         </div>

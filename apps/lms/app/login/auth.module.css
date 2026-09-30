@@ -110,3 +110,44 @@
 .footerText a:hover {
   text-decoration: underline;
 }
+
+/* Course Selection Styles */
+.courseGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.courseCard {
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: left;
+  cursor: pointer;
+  background: var(--bg-card);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.courseCard:hover {
+  border-color: var(--accent-highlight);
+}
+
+.courseCardSelected {
+  border-color: var(--accent-primary);
+  background: var(--accent-highlight);
+}
+
+.courseTitle {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.courseDesc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}

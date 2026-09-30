@@ -1,32 +1,32 @@
 :root {
-  /* Warm Cream / Ivory Background */
-  --bg-main: #fdfaf6;
+  /* Premium SaaS Admin Theme */
+  --bg-main: #fcfbfa; /* Very faint cream */
   --bg-card: #ffffff;
   
-  /* Deep Olive / Forest Green Accents */
-  --accent-primary: #3a4d39; /* Deep Olive / Forest Green */
-  --accent-primary-hover: #2b3a2a;
-  --accent-secondary: #739072; /* Muted Sage */
-  --accent-highlight: #ecece2; /* Soft sand / sage tint */
+  /* Primary Accents (Deep Green) */
+  --accent-primary: #215b3d; /* Dark muted green */
+  --accent-primary-hover: #19462e;
+  --accent-secondary: #4a8264;
+  --accent-highlight: #e8f3ee; /* Soft green tint for active states */
   
   /* Typography */
-  --text-primary: #2c2b29; /* Deep charcoal */
-  --text-secondary: #6e6a64; /* Muted gray-brown */
-  --text-disabled: #d1cfca;
+  --text-primary: #1e293b; /* Deep charcoal */
+  --text-secondary: #64748b; /* Muted gray-blue */
+  --text-disabled: #cbd5e1;
   
   /* Borders and Shadows */
-  --border-light: #e8e5df; /* Light beige-gray */
-  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
-  --shadow-card: 0 12px 30px -5px rgba(0, 0, 0, 0.03);
+  --border-light: #f1f5f9; /* Very light subtle border */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  --shadow-card: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
   
-  /* Status Colors (Muted) */
-  --status-success: #4a6a4e;
-  --status-success-bg: #e6ede6;
-  --status-warning: #8a6c32;
-  --status-warning-bg: #f9f2e3;
-  --status-error: #8b4848;
-  --status-error-bg: #f7eaea;
+  /* Status Colors */
+  --status-success: #15803d;
+  --status-success-bg: #dcfce7;
+  --status-warning: #b45309;
+  --status-warning-bg: #fef3c7;
+  --status-error: #b91c1c;
+  --status-error-bg: #fee2e2;
 }
 
 body {

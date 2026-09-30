@@ -1,12 +1,30 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import styles from "../page.module.css";
 
-const MOCK_INVOICES = [
-  { id: "WBM-2026-0001", user: "John Doe", amount: "$1,999", date: "Oct 12, 2026", status: "Paid" },
-  { id: "WBM-2026-0002", user: "Sarah Smith", amount: "$1,999", date: "Oct 12, 2026", status: "Paid" },
-  { id: "WBM-2026-0003", user: "TechCorp LLC", amount: "$4,500", date: "Oct 14, 2026", status: "Pending" },
-];
-
 export default function InvoicesPage() {
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const fetchInvoices = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/invoices");
+      if (res.ok) {
+        const data = await res.json();
+        setInvoices(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch invoices", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className={styles.dashboard}>
       <header className={styles.header}>
@@ -37,10 +55,18 @@ export default function InvoicesPage() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_INVOICES.map((inv) => (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} style={{textAlign: "center", padding: "20px"}}>Loading invoices...</td>
+                </tr>
+              ) : invoices.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{textAlign: "center", padding: "20px"}}>No invoices found.</td>
+                </tr>
+              ) : invoices.map((inv) => (
                 <tr key={inv.id}>
-                  <td><span className={styles.cellText}>{inv.id}</span></td>
-                  <td><span className={styles.cellUserName}>{inv.user}</span></td>
+                  <td><span className={styles.cellText}>{inv.invoiceNumber}</span></td>
+                  <td><span className={styles.cellUserName}>{inv.client}</span></td>
                   <td><span className={styles.cellText}>{inv.amount}</span></td>
                   <td><span className={styles.cellTextMuted}>{inv.date}</span></td>
                   <td>

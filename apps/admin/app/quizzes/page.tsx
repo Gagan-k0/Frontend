@@ -1,19 +1,40 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import styles from "../page.module.css";
 import Link from "next/link";
 
-const MOCK_QUIZZES = [
-  { id: 1, step: "Step 1: Introduction to U", questions: 5, passMark: "75%", updated: "Sep 28, 2026" },
-  { id: 2, step: "Step 2: Self Discovery", questions: 8, passMark: "75%", updated: "Sep 29, 2026" },
-  { id: 3, step: "Step 3: Resilience Building", questions: 10, passMark: "80%", updated: "Sep 29, 2026" },
-];
-
 export default function QuizzesPage() {
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchQuizzes();
+  }, []);
+
+  const fetchQuizzes = async () => {
+    try {
+      const res = await fetch("http://localhost:4000/quizzes");
+      if (res.ok) {
+        const data = await res.json();
+        setQuizzes(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch quizzes", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className={styles.dashboard}>
       <header className={styles.header}>
         <div className={styles.headerText}>
           <h1 className={styles.title}>Question Bank</h1>
           <p className={styles.subtitle}>Manage quizzes and passing criteria for each step.</p>
+        </div>
+        <div className={styles.headerActions}>
+          <Link href="/quizzes/create" className={styles.primaryBtn}>+ Create Quiz</Link>
         </div>
       </header>
 
@@ -34,7 +55,15 @@ export default function QuizzesPage() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_QUIZZES.map((quiz) => (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} style={{textAlign: "center", padding: "20px"}}>Loading quizzes...</td>
+                </tr>
+              ) : quizzes.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{textAlign: "center", padding: "20px"}}>No quizzes found.</td>
+                </tr>
+              ) : quizzes.map((quiz) => (
                 <tr key={quiz.id}>
                   <td>
                     <span className={styles.cellUserName}>{quiz.step}</span>

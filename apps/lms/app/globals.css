@@ -1,24 +1,24 @@
 :root {
-  /* Warm Cream / Ivory Background */
-  --bg-main: #fdfaf6;
+  /* Premium SaaS Theme - Indigo/Blue */
+  --bg-main: #f8f9fe;
   --bg-card: #ffffff;
   
-  /* Deep Olive / Forest Green Accents */
-  --accent-primary: #3a4d39;
-  --accent-primary-hover: #2b3a2a;
-  --accent-secondary: #739072;
-  --accent-highlight: #ecece2;
+  /* Primary Accents (Indigo/Purple) */
+  --accent-primary: #523df8;
+  --accent-primary-hover: #3d2ad1;
+  --accent-secondary: #8c81fa;
+  --accent-highlight: #f0f0ff;
 
   /* Status Colors */
-  --status-success: #4d6b50;
-  --status-success-bg: #f2f7f2;
-  --status-warning: #9c6c21;
+  --status-success: #05cd99;
+  --status-success-bg: #e6faf5;
+  --status-warning: #ffce20;
   --status-warning-bg: #fffbf0;
   
   /* Typography */
-  --text-primary: #2c2b29;
-  --text-secondary: #6e6a64;
-  --border-light: #e8e5df;
+  --text-primary: #2b3674;
+  --text-secondary: #a3aed1;
+  --border-light: #e0e5f2;
 }
 
 body {
