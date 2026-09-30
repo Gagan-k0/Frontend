@@ -24,8 +24,8 @@ export default function Home() {
               A comprehensive coaching program designed by Roweena to help you discover your true potential, build resilience, and achieve lasting success.
             </p>
             <div className={styles.ctas}>
-              <button className={styles.primaryCta}>Explore Programs</button>
-              <button className={styles.secondaryCta}>Watch Vision</button>
+              <Link href="/programs" className={styles.primaryCta}>Explore Programs</Link>
+              <Link href="/about" className={styles.secondaryCta}>Watch Vision</Link>
             </div>
           </div>
           <div className={styles.heroImageContainer}>
