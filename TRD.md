@@ -19,7 +19,7 @@ The Technical Requirements Document (TRD) serves as the definitive technical blu
 **Technical Flow:**
 1. `PENDING_PAYMENT`: User created, Stripe Session generated.
 2. `PENDING_AGREEMENT`: Stripe Webhook (`checkout.session.completed`) triggers update.
-3. `ACTIVE`: User posts base64 signature canvas. Backend converts to PDF, uploads to Cloudflare R2, updates state to ACTIVE.
+3. `ACTIVE`: User posts base64 signature canvas. Backend converts to PDF, uploads to AWS S3, updates state to ACTIVE.
 
 *Constraint:* Any `GET /api/steps` or `GET /api/lessons` request while `status !== 'ACTIVE'` must throw `403 Forbidden` with a standardized payload:
 ```json
@@ -51,7 +51,7 @@ The `StepsService.checkUnlockStatus(userId, stepId)` must evaluate the following
 
 ## 3. Asynchronous Processes & Background Jobs
 
-All async tasks are managed by **BullMQ** running on Upstash Redis.
+All async tasks are managed by **BullMQ** running on AWS ElastiCache (Redis).
 
 ### 3.1 Zoom Attendance Cron Logic
 **Schedule:** `*/10 * * * *` (Every 10 mins).

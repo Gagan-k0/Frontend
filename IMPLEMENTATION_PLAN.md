@@ -45,11 +45,11 @@
 | # | Item | Needed By | Status |
 |---|------|-----------|:------:|
 | T1 | Create GitHub/GitLab repository (Turborepo monorepo) | Day 1 | ⬜ |
-| T2 | Set up Neon PostgreSQL project with `dev`, `staging`, `main` branches | Day 1 | ⬜ |
-| T3 | Create Upstash Redis instance (free tier) | Day 1 | ⬜ |
-| T4 | Create Vercel project for frontend | Day 1 | ⬜ |
-| T5 | Create Railway project for backend API + worker | Day 1 | ⬜ |
-| T6 | Create Cloudflare R2 bucket (`whatboutme-storage`) | Day 1 | ⬜ |
+| T2 | Set up AWS RDS (PostgreSQL) instance in private VPC | Day 1 | ⬜ |
+| T3 | Create AWS ElastiCache (Redis) cluster | Day 1 | ⬜ |
+| T4 | Create AWS Amplify app for frontend | Day 1 | ⬜ |
+| T5 | Create AWS ECS (Fargate) cluster for backend API + worker | Day 1 | ⬜ |
+| T6 | Create AWS S3 bucket (`whatboutme-storage`) | Day 1 | ⬜ |
 | T7 | Create Resend account + verify sending domain | Sprint 1 | ⬜ |
 | T8 | Create Mux account (video streaming) | Sprint 5 | ⬜ |
 | T9 | Create Sentry projects (frontend + backend) | Day 1 | ⬜ |
@@ -75,12 +75,12 @@
 |---|------|---------|---------|
 | S0-1 | **Initialize Turborepo monorepo** | Frontends: `apps/lms`, `apps/marketing`, `apps/admin`. Backends: `apps/api-gateway`. Packages: `core-lms`, `core-registration`, `core-invoice`, `core-certification`, `shared` | Tech Stack |
 | S0-2 | **Configure CI/CD pipeline** | GitHub Actions: lint → type-check → unit tests → build → deploy. Staging auto-deploy on `develop` branch, production on `main` with manual approval. | Environments |
-| S0-3 | **Set up Neon PostgreSQL** | Create project, `dev`/`staging`/`main` branches, generate pooled + direct connection strings | Tech Stack |
-| S0-4 | **Set up Upstash Redis** | Create instance, configure connection URL for sessions, cache, and BullMQ | Tech Stack |
+| S0-3 | **Set up AWS RDS** | Provision PostgreSQL instance in private VPC, configure security groups, get connection string | Tech Stack |
+| S0-4 | **Set up AWS ElastiCache** | Provision Redis cluster, configure VPC access for sessions and BullMQ | Tech Stack |
 | S0-5 | **Set up Sentry** | Create frontend + backend projects, install SDKs, configure source maps for Next.js | Non-Functional |
-| S0-6 | **Set up Vercel** | Connect `apps/web`, configure environment variables, enable preview deployments per PR | Environments |
-| S0-7 | **Set up Railway** | Create service for `apps/api` with Dockerfile, configure health check endpoint, env vars | Environments |
-| S0-8 | **Set up Cloudflare R2** | Create `whatboutme-storage` bucket, enable CORS, generate API credentials | Data & Storage |
+| S0-6 | **Set up AWS Amplify** | Connect `apps/lms`, `apps/marketing`, `apps/admin` repos, configure environment variables | Environments |
+| S0-7 | **Set up AWS ECS (Fargate)** | Create task definitions for API and Worker with Dockerfiles, configure load balancer | Environments |
+| S0-8 | **Set up AWS S3** | Create `whatboutme-storage` bucket, enable CORS, configure IAM policies | Data & Storage |
 | S0-9 | **Create `.env.example`** | Document ALL environment variables per the Env Var Catalogue (ARCH §22) | — |
 
 #### Backend Tasks (NestJS)

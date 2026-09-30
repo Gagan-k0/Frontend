@@ -140,7 +140,7 @@ model Lesson {
   
   title       String
   type        ContentType
-  mediaUrl    String      // Cloudflare R2 / Mux Asset ID
+  mediaUrl    String      // AWS S3 / Mux Asset ID
   durationSec Int?
   
   progress    UserLessonProgress[]
@@ -213,7 +213,7 @@ model Enrolment {
   batch          Batch           @relation(fields: [batchId], references: [id])
   
   status         EnrolmentStatus @default(PENDING_PAYMENT)
-  agreementUrl   String?         // R2 URL to signed PDF
+  agreementUrl   String?         // AWS S3 URL to signed PDF
   
   attempts       Attempt[]
   lessonProgress UserLessonProgress[]
@@ -335,7 +335,7 @@ model Certificate {
   enrolmentId String    @unique
   enrolment   Enrolment @relation(fields: [enrolmentId], references: [id], onDelete: Cascade)
   
-  pdfUrl      String    // Cloudflare R2 permanent URL for cert
+  pdfUrl      String    // AWS S3 permanent URL for cert
   issuedAt    DateTime  @default(now())
 }
 

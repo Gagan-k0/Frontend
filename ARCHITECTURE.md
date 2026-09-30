@@ -82,10 +82,10 @@
                                        │
                   ┌────────────────────▼───────────────────────┐
                   │            INFRASTRUCTURE                  │
-                  │  - Neon Postgres (Database)                │
-                  │  - Upstash Redis (Cache & BullMQ Queues)   │
-                  │  - Cloudflare R2 (Object Storage)          │
-                  │  - Mux (Video CDN)                         │
+                  │  - AWS RDS (PostgreSQL Database)           │
+                  │  - AWS ElastiCache (Redis Cache & Queues)  │
+                  │  - AWS S3 (Object Storage for files)       │
+                  │  - Mux (Specialized Video CDN)             │
                   └────────────────────────────────────────────┘
 ```
 
@@ -117,19 +117,17 @@ ADRs document **why** key technology choices were made, what alternatives were c
 | — Full Microservices | Network latency between internal services, complex orchestration (Kubernetes/Kafka), overkill for a team of 2 developers. |
 | **Consequences** | Excellent reusability. The `core-invoice` package can be imported anywhere. Marketing site (`apps/marketing`) can be deployed to the edge for maximum SEO speed without loading heavy LMS bundles. Requires strict discipline to avoid circular dependencies between `packages/*`. |
 
-### ADR-002: Neon (Serverless PostgreSQL)
+### ADR-002: AWS RDS (PostgreSQL)
 
 | Field | Value |
 |-------|-------|
 | **Status** | Accepted |
-| **Context** | Need a PostgreSQL database with low operational overhead, separate environments (dev/staging/prod), and cost-efficient scaling for a platform that will have <500 concurrent users in year one. |
-| **Decision** | **Neon** (serverless PostgreSQL) with database branching. |
+| **Context** | The platform needs a highly reliable, enterprise-grade PostgreSQL database with automated backups, scaling capabilities, and tight integration with the rest of our AWS infrastructure. |
+| **Decision** | **AWS RDS for PostgreSQL**. |
 | **Alternatives Considered** | |
-| — Supabase | Provides auth and real-time out of the box, but we need custom auth (2FA, session limiting) and custom real-time (Socket.IO for chat). Supabase's extras would go unused while adding vendor lock-in. |
-| — AWS RDS PostgreSQL | Higher baseline cost (~$15-30/month always-on). No branching. More DevOps overhead. Better for high-traffic apps. |
-| — PlanetScale (MySQL) | Excellent branching model, but MySQL not PostgreSQL. Prisma works with both, but team has PostgreSQL expertise. |
-| **Consequences** | Neon cold starts on dev/staging (1-3s). Mitigated by using "Always On" compute for production. Branching simplifies environment management significantly. |
-| **Real-world edge case** | If Neon has an outage, all environments are affected. Mitigation: daily backups are restorable to a standard PostgreSQL instance within 1 hour. |
+| — Neon (Serverless) | Cost-effective for dev, but introduces vendor sprawl and lacks the deep VPC security integrations available when keeping everything inside the AWS ecosystem. |
+| — Supabase | Provides auth and real-time out of the box, but we need custom auth and our own WebSocket gateway. Adds vendor lock-in outside AWS. |
+| **Consequences** | AWS RDS requires VPC configuration and carries a fixed monthly baseline cost regardless of usage. However, it provides maximum reliability, Point-in-Time Recovery (PITR), and keeps data transfer (egress) costs between the API (AWS ECS) and the database at $0 since they share the same VPC. |
 
 ### ADR-003: Prisma ORM
 
