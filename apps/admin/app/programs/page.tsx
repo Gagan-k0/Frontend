@@ -31,7 +31,7 @@ export default function ProgramsPage() {
 
   const fetchPrograms = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs`);
       if (res.ok) {
         const data = await res.json();
         setPrograms(data);
@@ -94,7 +94,7 @@ export default function ProgramsPage() {
     try {
       const url = editingProgramId 
         ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs/${editingProgramId}` 
-        : `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/programs`;
+        : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs`;
       
       const method = editingProgramId ? "PATCH" : "POST";
 

@@ -35,7 +35,7 @@ export default function UsersPage() {
 
   const fetchBatches = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/batches`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/batches`);
       if (res.ok) {
         const data = await res.json();
         setBatches(data);
@@ -47,7 +47,7 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/users`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/users`);
       if (res.ok) {
         const data = await res.json();
         setUsers(data);
@@ -111,7 +111,7 @@ export default function UsersPage() {
     try {
       const url = editingUserId 
         ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/users/${editingUserId}` 
-        : `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/users`;
+        : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/users`;
       const method = editingUserId ? "PATCH" : "POST";
 
       const res = await fetch(url, {

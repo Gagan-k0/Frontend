@@ -66,7 +66,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
     setIsModalOpen(true);
     
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}/mux/upload-url`, { method: "POST" });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/mux/upload-url`, { method: "POST" });
       if (res.ok) {
         const data = await res.json();
         setUploadUrl(data.url);
