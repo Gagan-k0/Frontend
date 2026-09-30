@@ -12,9 +12,9 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/client": "^7.10.0"
+    "@prisma/client": "^5.22.0"
   },
   "devDependencies": {
-    "prisma": "8.0.0-rc.19"
+    "prisma": "^5.22.0"
   }
 }

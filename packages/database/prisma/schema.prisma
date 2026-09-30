@@ -3,40 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-// -----------------------------------------------------------------------------
-// ENUMS
-// -----------------------------------------------------------------------------
-
-enum Role {
-  SUPER_ADMIN
-  ADMIN
-  MANAGER
-  USER
-}
-
-enum EnrolmentStatus {
-  PENDING_PAYMENT
-  PENDING_AGREEMENT
-  ACTIVE
-  WAITLIST
-  COMPLETED
-  REVOKED
-}
-
-enum AttemptStatus {
-  IN_PROGRESS
-  PASSED
-  FAILED
-}
-
-enum ContentType {
-  VIDEO
-  PDF
-  AUDIO
 }
 
 // -----------------------------------------------------------------------------
@@ -57,7 +25,7 @@ model User {
   email     String    @unique
   name      String?
   phone     String?
-  role      Role      @default(USER)
+  role      String    @default("USER") // SUPER_ADMIN, ADMIN, MANAGER, USER
   
   // Relations
   companyId String?
@@ -66,6 +34,7 @@ model User {
   managedBatches Batch[]     @relation("ManagerBatches")
   enrolments     Enrolment[]
   messagesSent   Message[]
+  conversations  Conversation[]
   
   // Soft Delete for GDPR
   deletedAt DateTime?
@@ -117,7 +86,7 @@ model Lesson {
   step        Step        @relation(fields: [stepId], references: [id], onDelete: Cascade)
   
   title       String
-  type        ContentType
+  type        String      // VIDEO, PDF, AUDIO
   mediaUrl    String      // AWS S3 / Mux Asset ID
   durationSec Int?
   
@@ -190,7 +159,7 @@ model Enrolment {
   batchId        String
   batch          Batch           @relation(fields: [batchId], references: [id])
   
-  status         EnrolmentStatus @default(PENDING_PAYMENT)
+  status         String          @default("PENDING_PAYMENT") // PENDING_PAYMENT, PENDING_AGREEMENT, ACTIVE, WAITLIST, COMPLETED, REVOKED
   agreementUrl   String?         // AWS S3 URL to signed PDF
   
   attempts       Attempt[]
@@ -209,7 +178,6 @@ model Enrolment {
 // PROGRESSION TRACKING & LOGIC GATES
 // -----------------------------------------------------------------------------
 
-// TRD 2.2: Tracks video view logic
 model UserLessonProgress {
   id          String    @id @default(uuid())
   enrolmentId String
@@ -223,7 +191,6 @@ model UserLessonProgress {
   @@unique([enrolmentId, lessonId])
 }
 
-// TRD 2.2: The attempt state machine for Quizzes
 model Attempt {
   id          String        @id @default(uuid())
   enrolmentId String
@@ -232,16 +199,12 @@ model Attempt {
   quiz        Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
   
   score       Int?
-  status      AttemptStatus @default(IN_PROGRESS)
+  status      String        @default("IN_PROGRESS") // IN_PROGRESS, PASSED, FAILED
   
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-
-  // TRD Concurrency rule: User can only have one IN_PROGRESS attempt at a time per quiz
-  // However, Prisma doesn't support partial unique indexes easily, so uniqueness handled in NestJS code.
 }
 
-// TRD 2.2: Admin override logic for locking/unlocking steps manually
 model BatchStepOverride {
   id         String   @id @default(uuid())
   batchId    String
@@ -323,7 +286,7 @@ model Certificate {
 
 model Conversation {
   id          String    @id @default(uuid())
-  participantIds String[] // Store UUIDs of participants
+  participants User[]   
   messages    Message[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
