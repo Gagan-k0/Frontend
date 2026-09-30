@@ -24,15 +24,15 @@ export default function ContactPage() {
             <form style={{display: 'flex', flexDirection: 'column', gap: '1.5rem'}}>
               <div>
                 <label style={{display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)'}}>Name</label>
-                <input type="text" style={{width: '100%', padding: '1rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', outline: 'none'}} />
+                <input type="text" style={{width: '100%', padding: '1rem', borderRadius: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', outline: 'none'}} />
               </div>
               <div>
                 <label style={{display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)'}}>Email</label>
-                <input type="email" style={{width: '100%', padding: '1rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', outline: 'none'}} />
+                <input type="email" style={{width: '100%', padding: '1rem', borderRadius: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', outline: 'none'}} />
               </div>
               <div>
                 <label style={{display: 'block', marginBottom: '0.5rem', color: 'var(--text-secondary)'}}>Message</label>
-                <textarea rows={5} style={{width: '100%', padding: '1rem', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', outline: 'none', resize: 'vertical'}}></textarea>
+                <textarea rows={5} style={{width: '100%', padding: '1rem', borderRadius: '8px', background: 'var(--bg-main)', border: '1px solid var(--border-light)', color: 'var(--text-primary)', outline: 'none', resize: 'vertical'}}></textarea>
               </div>
               <button type="button" className={styles.ctaBtn} style={{width: '100%', border: 'none', cursor: 'pointer'}}>Send Message</button>
             </form>

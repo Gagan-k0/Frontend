@@ -18,8 +18,8 @@ export default function VerifyCertificatePage({ params }: { params: { certId: st
       <main className={styles.main}>
         <section className={styles.hero} style={{minHeight: '60vh', textAlign: 'center'}}>
           <div style={{
-            background: 'rgba(16, 185, 129, 0.1)',
-            border: '1px solid #10b981',
+            background: 'var(--status-success-bg)',
+            border: '1px solid var(--status-success)',
             borderRadius: '16px',
             padding: '3rem',
             maxWidth: '600px',
@@ -27,12 +27,12 @@ export default function VerifyCertificatePage({ params }: { params: { certId: st
             backdropFilter: 'blur(10px)'
           }}>
             <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
-            <h1 style={{ color: '#10b981', margin: '0 0 1rem 0' }}>Certificate Verified</h1>
+            <h1 style={{ color: 'var(--status-success)', margin: '0 0 1rem 0' }}>Certificate Verified</h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '2rem' }}>
               Certificate ID: <strong>{params.certId}</strong> is a valid and authentic credential issued by WhatBoutMe.
             </p>
             
-            <div style={{ textAlign: 'left', background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '8px' }}>
+            <div style={{ textAlign: 'left', background: 'var(--bg-card)', border: '1px solid var(--border-light)', padding: '1.5rem', borderRadius: '8px' }}>
               <p style={{ margin: '0 0 0.5rem 0' }}><strong>Recipient:</strong> Emma Davis</p>
               <p style={{ margin: '0 0 0.5rem 0' }}><strong>Program:</strong> 11 Steps to U Certification</p>
               <p style={{ margin: '0' }}><strong>Issued On:</strong> October 20, 2026</p>

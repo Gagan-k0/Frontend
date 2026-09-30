@@ -18,6 +18,7 @@
   font-size: 2.5rem;
   margin: 0;
   font-weight: 800;
+  color: var(--text-primary);
 }
 
 .subtitle {
@@ -27,20 +28,20 @@
 }
 
 .nextSessionCard {
-  background: linear-gradient(135deg, rgba(233, 69, 96, 0.1), rgba(255, 138, 0, 0.1));
-  border: 1px solid rgba(233, 69, 96, 0.3);
+  background: var(--bg-card);
+  border: 1px solid var(--accent-primary);
   padding: 3rem;
-  border-radius: 16px;
+  border-radius: 20px;
   position: relative;
-  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-sm);
 }
 
 .liveIndicator {
   position: absolute;
   top: 1.5rem;
   right: 1.5rem;
-  background: rgba(233, 69, 96, 0.2);
-  color: #e94560;
+  background: var(--status-success-bg);
+  color: var(--status-success);
   padding: 0.5rem 1rem;
   border-radius: 50px;
   font-weight: 800;
@@ -48,25 +49,27 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  border: 1px solid var(--status-success);
 }
 
 .pulse {
   width: 10px;
   height: 10px;
-  background-color: #e94560;
+  background-color: var(--status-success);
   border-radius: 50%;
   animation: pulsing 1.5s infinite;
 }
 
 @keyframes pulsing {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(233, 69, 96, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(233, 69, 96, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(233, 69, 96, 0); }
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(77, 107, 80, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(77, 107, 80, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(77, 107, 80, 0); }
 }
 
 .nextSessionCard h2 {
   font-size: 2rem;
   margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
 }
 
 .nextSessionCard p {
@@ -75,25 +78,26 @@
 }
 
 .joinBtn {
-  background: linear-gradient(135deg, #e94560, #ff8a00);
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 1rem 2.5rem;
-  border-radius: 50px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 1.1rem;
   cursor: pointer;
-  box-shadow: 0 10px 20px rgba(233, 69, 96, 0.3);
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .joinBtn:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
+  background: var(--accent-primary-hover);
 }
 
 .sectionTitle {
   font-size: 1.5rem;
   margin: 1rem 0;
+  color: var(--text-primary);
 }
 
 .scheduleList {
@@ -105,17 +109,18 @@
 .scheduleItem {
   display: flex;
   gap: 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   padding: 1.5rem;
-  border-radius: 12px;
+  border-radius: 16px;
   align-items: center;
 }
 
 .dateBox {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-main);
+  border: 1px solid var(--border-light);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -131,11 +136,13 @@
 .day {
   font-size: 1.8rem;
   font-weight: 800;
+  color: var(--text-primary);
 }
 
 .details h4 {
   margin: 0 0 0.5rem 0;
   font-size: 1.2rem;
+  color: var(--text-primary);
 }
 
 .details p {

@@ -28,6 +28,7 @@
   font-size: 2.5rem;
   margin: 0;
   font-weight: 800;
+  color: var(--text-primary);
 }
 
 .subtitle {
@@ -43,16 +44,16 @@
 }
 
 .videoContainer {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
   overflow: hidden;
   aspect-ratio: 16/9;
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 2rem;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-sm);
 }
 
 .videoPlaceholder {
@@ -67,7 +68,7 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #e94560, #ff8a00);
+  background: var(--accent-primary);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -79,19 +80,20 @@
 
 .playButton:hover {
   transform: scale(1.1);
+  background: var(--accent-primary-hover);
 }
 
 .descriptionCard, .quizCard, .resourceCard {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   padding: 2rem;
-  border-radius: 16px;
+  border-radius: 20px;
   margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
 }
 
 .quizDesc {
-  color: var(--accent-secondary);
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin-bottom: 1.5rem;
 }
@@ -99,6 +101,7 @@
 .question p {
   font-weight: 600;
   margin-bottom: 1rem;
+  color: var(--text-primary);
 }
 
 .options {
@@ -112,24 +115,26 @@
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-main);
+  border: 1px solid var(--border-light);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
   cursor: pointer;
   transition: background 0.2s ease;
 }
 
 .option:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--accent-highlight);
+  border-color: var(--accent-secondary);
 }
 
 .submitBtn {
   width: 100%;
-  background: linear-gradient(135deg, #e94560, #ff8a00);
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
@@ -138,19 +143,23 @@
 
 .submitBtn:hover {
   transform: translateY(-2px);
+  background: var(--accent-primary-hover);
 }
 
 .resourceLink {
   display: block;
-  color: var(--text-primary);
+  color: var(--accent-primary);
   text-decoration: none;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-main);
+  border: 1px solid var(--border-light);
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 0.5rem;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .resourceLink:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--accent-highlight);
+  border-color: var(--accent-secondary);
 }

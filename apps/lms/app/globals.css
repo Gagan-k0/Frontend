@@ -8,6 +8,12 @@
   --accent-primary-hover: #2b3a2a;
   --accent-secondary: #739072;
   --accent-highlight: #ecece2;
+
+  /* Status Colors */
+  --status-success: #4d6b50;
+  --status-success-bg: #f2f7f2;
+  --status-warning: #9c6c21;
+  --status-warning-bg: #fffbf0;
   
   /* Typography */
   --text-primary: #2c2b29;

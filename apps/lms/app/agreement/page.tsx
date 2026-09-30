@@ -18,9 +18,10 @@ export default function LearnerAgreement() {
         <p>Please review and sign the terms before beginning your journey.</p>
         
         <div style={{
-          background: 'rgba(0,0,0,0.3)',
+          background: 'var(--bg-main)',
+          border: '1px solid var(--border-light)',
           padding: '1.5rem',
-          borderRadius: '10px',
+          borderRadius: '12px',
           maxHeight: '200px',
           overflowY: 'auto',
           textAlign: 'left',
@@ -39,7 +40,7 @@ export default function LearnerAgreement() {
         <form className={styles.form}>
           <div className={styles.inputGroup} style={{ flexDirection: 'row', alignItems: 'center', gap: '1rem' }}>
             <input type="checkbox" id="agreeCheck" style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
-            <label htmlFor="agreeCheck" style={{ cursor: 'pointer', fontSize: '0.9rem', color: 'white' }}>
+            <label htmlFor="agreeCheck" style={{ cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-primary)' }}>
               I have read and agree to the Terms of Service
             </label>
           </div>
