@@ -1,0 +1,205 @@
+.container {
+  display: flex;
+  height: calc(100vh - 6rem);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  overflow: hidden;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.chatSidebar {
+  width: 300px;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+.chatSidebar h3 {
+  padding: 1.5rem;
+  margin: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.contactList {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.contact {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.contact:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.contact.active {
+  background: rgba(233, 69, 96, 0.1);
+  border-left: 3px solid var(--accent-primary);
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e94560, #ff8a00);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.contactInfo {
+  flex: 1;
+}
+
+.contactInfo h4 {
+  margin: 0 0 0.3rem 0;
+  font-size: 0.95rem;
+}
+
+.contactInfo p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.badge {
+  background: var(--accent-primary);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.chatWindow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.chatHeader h4 {
+  margin: 0 0 0.2rem 0;
+}
+
+.chatHeader p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #10b981;
+}
+
+.chatMessages {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.message {
+  max-width: 60%;
+  display: flex;
+  flex-direction: column;
+}
+
+.message p {
+  padding: 1rem;
+  border-radius: 12px;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.5;
+}
+
+.time {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.received {
+  align-self: flex-start;
+}
+
+.received p {
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom-left-radius: 2px;
+}
+
+.sent {
+  align-self: flex-end;
+}
+
+.sent p {
+  background: linear-gradient(135deg, rgba(233, 69, 96, 0.8), rgba(255, 138, 0, 0.8));
+  color: white;
+  border-bottom-right-radius: 2px;
+}
+
+.sent .time {
+  text-align: right;
+}
+
+.chatInput {
+  padding: 1.5rem;
+  background: rgba(15, 23, 42, 0.5);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  gap: 1rem;
+}
+
+.chatInput input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 1rem;
+  border-radius: 50px;
+  outline: none;
+  font-family: inherit;
+}
+
+.chatInput input:focus {
+  border-color: rgba(233, 69, 96, 0.5);
+}
+
+.sendBtn {
+  background: linear-gradient(135deg, #e94560, #ff8a00);
+  color: white;
+  border: none;
+  padding: 0 2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.sendBtn:hover {
+  transform: scale(1.05);
+}

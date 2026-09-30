@@ -1,0 +1,139 @@
+.appContainer {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 280px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.5rem;
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  top: 0;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #e94560, #ff8a00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.userProfile {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e94560, #ff8a00);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.userInfo h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.userInfo p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.navMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  flex: 1;
+}
+
+.navGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.navTitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 0 0 0.5rem 1rem;
+}
+
+.navItem {
+  text-decoration: none;
+  color: var(--text-secondary);
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.active {
+  background: rgba(233, 69, 96, 0.1) !important;
+  color: var(--accent-primary) !important;
+  border-left: 3px solid var(--accent-primary);
+}
+
+.badge {
+  background: var(--accent-primary);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.logoutBtn {
+  margin-top: auto;
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.logoutBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.mainContent {
+  margin-left: 280px;
+  flex: 1;
+  padding: 3rem 4rem;
+  min-height: 100vh;
+}
