@@ -45,3 +45,15 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
   font-weight: 600;
 }
+
+/* Hide sidebar and topbar on login page demo */
+body.login-page-active aside,
+body.login-page-active header {
+  display: none !important;
+}
+
+body.login-page-active ._layout_mainWrapper__xxxxxx { /* Fallback */ }
+body.login-page-active div[class*="mainWrapper"] {
+  margin-left: 0 !important;
+}
+

@@ -27,3 +27,13 @@ body {
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
 }
+
+/* Hide sidebar on auth pages */
+body.auth-page-active aside {
+  display: none !important;
+}
+
+body.auth-page-active div[class*="mainContent"] {
+  margin-left: 0 !important;
+  padding: 0 !important;
+}

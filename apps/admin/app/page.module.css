@@ -170,6 +170,24 @@
   border-bottom: 1px solid var(--border-light);
 }
 
+.searchContainer {
+  display: flex;
+  align-items: center;
+  background: var(--bg-main);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-light);
+}
+
+.searchInput {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  width: 250px;
+}
+
 .sectionHeader h2 {
   margin: 0;
   font-size: 1.1rem;
@@ -251,6 +269,24 @@
   color: var(--text-primary);
 }
 
+.cellTextMuted {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.backLink {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: inline-block;
+}
+
+.backLink:hover {
+  color: var(--accent-primary);
+}
+
 .alignRight {
   text-align: right !important;
 }
@@ -277,6 +313,11 @@
 .completed {
   background: var(--status-success-bg);
   color: var(--status-success);
+}
+
+.locked {
+  background: var(--bg-main);
+  color: var(--text-secondary);
 }
 
 /* Progress */
