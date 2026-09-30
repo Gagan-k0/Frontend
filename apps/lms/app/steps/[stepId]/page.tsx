@@ -22,8 +22,18 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
         
         // Handle resolving Mux playback ID
         const lesson = data.lessons?.[0];
+        let uploadId = null;
+
         if (lesson && lesson.mediaUrl?.startsWith('upload:')) {
-          const uploadId = lesson.mediaUrl.replace('upload:', '');
+          uploadId = lesson.mediaUrl.replace('upload:', '');
+        } else if (lesson && lesson.mediaUrl?.includes('/upload/')) {
+          // Backwards compatibility for raw Mux direct upload URLs
+          try {
+            uploadId = lesson.mediaUrl.split('/upload/')[1].split('?')[0];
+          } catch (e) {}
+        }
+
+        if (uploadId) {
           fetch(`http://localhost:4000/mux/upload/${uploadId}`)
             .then(r => r.json())
             .then(muxData => {
@@ -90,6 +100,13 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
     const passed = scorePercentage >= quiz.passMark;
     
     if (passed) {
+      if (step && step.programId) {
+        const nextSequence = (step.sequence || 1) + 1;
+        const currentProgress = parseInt(localStorage.getItem(`progress_${step.programId}`) || "1", 10);
+        if (nextSequence > currentProgress) {
+          localStorage.setItem(`progress_${step.programId}`, nextSequence.toString());
+        }
+      }
       setQuizResult({ passed: true, score: scorePercentage, message: `Great job! You scored ${scorePercentage}% and passed the step.` });
     } else {
       setQuizResult({ passed: false, score: scorePercentage, message: `You scored ${scorePercentage}%. You need ${quiz.passMark}% to pass. Try again!` });

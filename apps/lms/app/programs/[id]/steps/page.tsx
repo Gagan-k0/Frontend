@@ -8,6 +8,7 @@ export default function ProgramStepsPage({ params }: { params: Promise<{ id: str
   const unwrappedParams = use(params);
   const [steps, setSteps] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unlockedSequence, setUnlockedSequence] = useState<number>(1);
   const router = useRouter();
 
   useEffect(() => {
@@ -16,6 +17,11 @@ export default function ProgramStepsPage({ params }: { params: Promise<{ id: str
       .then(data => {
         setSteps(data);
         setLoading(false);
+        // Load progress from local storage
+        const savedProgress = localStorage.getItem(`progress_${unwrappedParams.id}`);
+        if (savedProgress) {
+          setUnlockedSequence(parseInt(savedProgress, 10));
+        }
       })
       .catch(e => {
         console.error("Failed to fetch steps", e);
@@ -43,14 +49,14 @@ export default function ProgramStepsPage({ params }: { params: Promise<{ id: str
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          {steps.map((step, index) => {
-            const isFirst = index === 0;
+          {steps.map((step) => {
+            const isUnlocked = step.sequence <= unlockedSequence;
             return (
               <div key={step.id} style={{ 
                 background: "var(--bg-card)", 
                 padding: "1.5rem", 
                 borderRadius: "12px", 
-                border: isFirst ? "2px solid var(--accent-primary)" : "1px solid var(--border-light)",
+                border: isUnlocked ? "2px solid var(--accent-primary)" : "1px solid var(--border-light)",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center"
@@ -61,18 +67,21 @@ export default function ProgramStepsPage({ params }: { params: Promise<{ id: str
                 </div>
                 
                 <Link 
-                  href={`/steps/${step.id}`} 
+                  href={isUnlocked ? `/steps/${step.id}` : '#'} 
+                  onClick={(e) => !isUnlocked && e.preventDefault()}
                   style={{ 
-                    background: isFirst ? "var(--accent-primary)" : "var(--bg-main)", 
-                    color: isFirst ? "white" : "var(--text-secondary)", 
+                    background: isUnlocked ? "var(--accent-primary)" : "var(--bg-main)", 
+                    color: isUnlocked ? "white" : "var(--text-secondary)", 
                     padding: "0.75rem 1.5rem", 
                     borderRadius: "8px", 
                     textDecoration: "none", 
                     fontWeight: 600,
-                    border: isFirst ? "none" : "1px solid var(--border-light)"
+                    border: isUnlocked ? "none" : "1px solid var(--border-light)",
+                    opacity: isUnlocked ? 1 : 0.6,
+                    cursor: isUnlocked ? "pointer" : "not-allowed"
                   }}
                 >
-                  {isFirst ? "Start Step" : "Locked"}
+                  {isUnlocked ? (step.sequence < unlockedSequence ? "Review Step" : "Start Step") : "Locked"}
                 </Link>
               </div>
             );
