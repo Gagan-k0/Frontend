@@ -1,211 +1,280 @@
 "use client";
 
+import styles from "./page.module.css";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false);
+// Inline SVGs for Dashboard
+const Icons = {
+  Wave: () => <span className={styles.greetingIcon}>👋</span>,
+  ArrowRight: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>,
+  ChevronRight: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>,
+  ProgramBook: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
+  SessionCal: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>,
+  CertificateRibbon: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>,
+  ProgressChart: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>,
+  Star: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
+  Trophy: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>,
+  Clock: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3aed1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
+  Bulb: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1.45.62 2.76 1.5 3.5.76.76 1.23 1.52 1.41 2.5"></path></svg>
+};
+
+interface EnrolledProgram {
+  enrolmentId: string;
+  batchId: string;
+  batchName: string;
+  programId: string;
+  programTitle: string;
+  status: string;
+  progress: number;
+}
+
+interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  enrolledPrograms: EnrolledProgram[];
+}
+
+export default function LearnerDashboard() {
+  const router = useRouter();
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          localStorage.removeItem("token");
+          router.push("/login");
+          throw new Error("Unauthorized");
+        }
+        return res.json();
+      })
+      .then((profile: UserProfile) => {
+        setUser(profile);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className={styles.dashboard}>
+        <div style={{ textAlign: "center", padding: "60px 20px" }}>
+          <h2>Loading your dashboard...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
+  const firstName = user.name ? user.name.split(" ")[0] : "Learner";
+  const numEnrolled = user.enrolledPrograms.length;
+  const isEnrolled = numEnrolled > 0;
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#fcfcfc", fontFamily: "var(--font-geist-sans)" }}>
-      {/* NAVBAR */}
-      <nav style={{
-        position: "fixed", top: 0, width: "100%", zIndex: 100,
-        backgroundColor: scrolled ? "rgba(255, 255, 255, 0.9)" : "transparent",
-        backdropFilter: scrolled ? "blur(10px)" : "none",
-        boxShadow: scrolled ? "0 2px 10px rgba(0,0,0,0.05)" : "none",
-        transition: "all 0.3s ease",
-        display: "flex", justifyContent: "space-between", alignItems: "center",
-        padding: "1rem 4rem"
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <div style={{ width: "32px", height: "32px", backgroundColor: "var(--accent-primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold" }}>
-            W
-          </div>
-          <span style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--text-primary)" }}>WhatBoutMe</span>
-        </div>
-        <div style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
-          <Link href="#programs" style={{ color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500 }}>Programs</Link>
-          <Link href="#about" style={{ color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500 }}>About</Link>
-          <Link href="/login" style={{ color: "var(--text-secondary)", textDecoration: "none", fontWeight: 500 }}>Login</Link>
-          <Link href="/signup" style={{ 
-            backgroundColor: "var(--accent-primary)", color: "white", padding: "0.6rem 1.2rem", 
-            borderRadius: "6px", textDecoration: "none", fontWeight: 600,
-            boxShadow: "0 4px 14px rgba(79, 70, 229, 0.4)"
-          }}>
-            Get Started
-          </Link>
-        </div>
-      </nav>
-
-      {/* HERO SECTION */}
-      <section style={{
-        padding: "10rem 2rem 6rem",
-        display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
-        background: "linear-gradient(135deg, #f3f4f6 0%, #ffffff 100%)",
-        position: "relative", overflow: "hidden"
-      }}>
-        <div style={{ 
-          position: "absolute", top: "-100px", left: "-100px", width: "400px", height: "400px", 
-          background: "radial-gradient(circle, rgba(79,70,229,0.1) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%" 
-        }}></div>
-        <div style={{ 
-          position: "absolute", bottom: "-100px", right: "-100px", width: "500px", height: "500px", 
-          background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, rgba(255,255,255,0) 70%)", borderRadius: "50%" 
-        }}></div>
-
-        <div style={{ display: "inline-block", padding: "0.4rem 1rem", backgroundColor: "rgba(79, 70, 229, 0.1)", color: "var(--accent-primary)", borderRadius: "20px", fontSize: "0.85rem", fontWeight: 700, marginBottom: "1.5rem" }}>
-          NEW: 11 Steps to U Certification is Live! 🚀
-        </div>
-        
-        <h1 style={{ fontSize: "4.5rem", fontWeight: 800, color: "var(--text-primary)", maxWidth: "900px", lineHeight: 1.1, marginBottom: "1.5rem", letterSpacing: "-0.02em" }}>
-          Build unbreakable <span style={{ color: "var(--accent-primary)" }}>resilience</span> for your mind and career.
-        </h1>
-        
-        <p style={{ fontSize: "1.25rem", color: "var(--text-secondary)", maxWidth: "600px", lineHeight: 1.6, marginBottom: "2.5rem" }}>
-          Join Roweena Britto's exclusive learning platform. Master the 11 Steps to U, attend live workshops, and unlock your true potential.
-        </p>
-
-        <div style={{ display: "flex", gap: "1rem" }}>
-          <Link href="/signup" style={{ 
-            backgroundColor: "var(--accent-primary)", color: "white", padding: "1rem 2rem", 
-            borderRadius: "8px", textDecoration: "none", fontWeight: 600, fontSize: "1.1rem",
-            boxShadow: "0 10px 25px rgba(79, 70, 229, 0.4)", transition: "transform 0.2s"
-          }}>
-            Explore Programs
-          </Link>
-          <Link href="#about" style={{ 
-            backgroundColor: "white", color: "var(--text-primary)", padding: "1rem 2rem", 
-            borderRadius: "8px", textDecoration: "none", fontWeight: 600, fontSize: "1.1rem",
-            border: "1px solid var(--border-light)", transition: "all 0.2s"
-          }}>
-            Watch Free Demo
-          </Link>
-        </div>
-
-        {/* Stats Row */}
-        <div style={{ display: "flex", gap: "4rem", marginTop: "4rem", paddingTop: "3rem", borderTop: "1px solid var(--border-light)" }}>
-          <div>
-            <h3 style={{ fontSize: "2rem", fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>10,000+</h3>
-            <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.9rem" }}>Lives Impacted</p>
-          </div>
-          <div>
-            <h3 style={{ fontSize: "2rem", fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>11</h3>
-            <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.9rem" }}>Proven Steps</p>
-          </div>
-          <div>
-            <h3 style={{ fontSize: "2rem", fontWeight: 800, margin: 0, color: "var(--text-primary)" }}>100%</h3>
-            <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.9rem" }}>Satisfaction Rate</p>
-          </div>
+    <div className={styles.dashboard}>
+      {/* 1. GREETING SECTION */}
+      <section className={styles.greeting}>
+        <Icons.Wave />
+        <div className={styles.greetingText}>
+          <h1>Good Afternoon, <span>{firstName}!</span></h1>
+          {isEnrolled ? (
+            <p>Welcome back! You have {numEnrolled} active program(s) in progress.</p>
+          ) : (
+            <p>You are not enrolled in any program yet. Browse our programs to get started!</p>
+          )}
         </div>
       </section>
 
-      {/* FEATURED PROGRAMS SECTION */}
-      <section id="programs" style={{ padding: "6rem 2rem", backgroundColor: "white", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <h2 style={{ fontSize: "2.5rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "1rem" }}>Featured Programs</h2>
-        <p style={{ fontSize: "1.1rem", color: "var(--text-secondary)", marginBottom: "4rem", textAlign: "center", maxWidth: "600px" }}>
-          Whether you are an individual looking for self-improvement or a corporate team building resilience, we have a path for you.
-        </p>
+      {/* 2. HERO BANNER */}
+      <section className={styles.heroBanner}>
+        <div className={styles.heroContent}>
+          <div className={styles.eyebrow}>LEARN &bull; GROW &bull; ACHIEVE</div>
+          <h2>Start Your <span>Learning Journey</span></h2>
+          <p>Explore industry-relevant programs, join live sessions, and earn certificates to build your future.</p>
+          <Link href="http://localhost:3001/programs" className={styles.primaryBtn}>
+            Browse Programs <Icons.ArrowRight />
+          </Link>
+        </div>
+        <div className={styles.heroIllustration}>
+          {/* Using a placeholder since we don't have the exact illustration asset */}
+          <div style={{
+            width: '300px', height: '100%', 
+            background: 'url("https://illustrations.popsy.co/amber/student-going-to-school.svg") no-repeat center bottom / contain',
+            opacity: 0.9
+          }}></div>
+        </div>
+      </section>
 
-        <div style={{ display: "flex", gap: "2rem", maxWidth: "1000px", width: "100%", flexWrap: "wrap", justifyContent: "center" }}>
+      {/* 3. STAT CARDS ROW */}
+      <section className={styles.statsRow}>
+        <div className={styles.statCard}>
+          <div className={styles.statInfo}>
+            <div className={styles.statIcon} style={{ background: '#f4f0ff', color: '#8c81fa' }}>
+              <Icons.ProgramBook />
+            </div>
+            <div className={styles.statText}>
+              <h4>Programs</h4>
+              <h2>{numEnrolled}</h2>
+              <p>Enrolled programs</p>
+            </div>
+          </div>
+          <div className={styles.statArrow}><Icons.ChevronRight /></div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statInfo}>
+            <div className={styles.statIcon} style={{ background: '#e6f3ff', color: '#3b82f6' }}>
+              <Icons.SessionCal />
+            </div>
+            <div className={styles.statText}>
+              <h4>Live Sessions</h4>
+              <h2>0</h2>
+              <p>Upcoming sessions</p>
+            </div>
+          </div>
+          <div className={styles.statArrow}><Icons.ChevronRight /></div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statInfo}>
+            <div className={styles.statIcon} style={{ background: '#e6faf5', color: '#05cd99' }}>
+              <Icons.CertificateRibbon />
+            </div>
+            <div className={styles.statText}>
+              <h4>Certificates</h4>
+              <h2>0</h2>
+              <p>Certificates earned</p>
+            </div>
+          </div>
+          <div className={styles.statArrow}><Icons.ChevronRight /></div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statInfo}>
+            <div className={styles.statIcon} style={{ background: '#fffbf0', color: '#ffce20' }}>
+              <Icons.ProgressChart />
+            </div>
+            <div className={styles.statText}>
+              <h4>Learning Progress</h4>
+              <h2>{isEnrolled ? (user.enrolledPrograms[0]?.progress || 0) : 0}%</h2>
+              <p>Overall completion</p>
+            </div>
+          </div>
+          <div className={styles.statArrow}><Icons.ChevronRight /></div>
+        </div>
+      </section>
+
+      {/* 4. MAIN CONTENT GRID */}
+      <section className={styles.mainGrid}>
+        
+        {/* Left Side: Your Programs */}
+        <div className={styles.card} style={{ gridRow: 'span 2' }}>
+          <div className={styles.cardHeader}>
+            <h3><Icons.Star /> Your Programs</h3>
+            <Link href="http://localhost:3001/programs" className={styles.cardLink}>Browse Programs <Icons.ArrowRight /></Link>
+          </div>
           
-          {/* Card 1 */}
-          <div style={{ 
-            flex: "1 1 300px", maxWidth: "380px", borderRadius: "16px", overflow: "hidden", 
-            border: "1px solid var(--border-light)", backgroundColor: "white",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.05)", transition: "transform 0.3s ease"
-          }}>
-            <div style={{ height: "200px", backgroundColor: "#eef2ff", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-              <div style={{ position: "absolute", top: "15px", left: "15px", backgroundColor: "white", padding: "4px 10px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 700, color: "var(--accent-primary)" }}>
-                CERTIFICATION
-              </div>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          {!isEnrolled ? (
+            <div className={styles.emptyState} style={{ padding: '4rem 0' }}>
+              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📚</div>
+              <h4>No Active Programs</h4>
+              <p>You haven't enrolled in any learning program yet. Start exploring courses created for you.</p>
+              <Link href="http://localhost:3001/programs" className={styles.primaryBtn} style={{ marginTop: '1rem' }}>
+                Browse Programs <Icons.ArrowRight />
+              </Link>
             </div>
-            <div style={{ padding: "1.5rem" }}>
-              <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.25rem", color: "var(--text-primary)" }}>11 Steps to U Masterclass</h3>
-              <p style={{ margin: "0 0 1.5rem 0", fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                The flagship certification program. Master your mindset, overcome anxiety, and build lasting resilience.
-              </p>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--text-primary)" }}>$1,999</span>
-                <Link href="/login" style={{ color: "var(--accent-primary)", fontWeight: 600, textDecoration: "none", fontSize: "0.95rem" }}>View Details &rarr;</Link>
-              </div>
-            </div>
-          </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {user.enrolledPrograms.map((prog) => (
+                <div key={prog.programId} style={{ border: '1px solid var(--border-light)', borderRadius: '16px', padding: '1.5rem', background: 'var(--bg-main)' }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', color: 'var(--text-primary)' }}>{prog.programTitle}</h4>
+                  <p style={{ margin: '0 0 1rem 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Cohort: {prog.batchName}</p>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Progress</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--accent-primary)' }}>{prog.progress}%</span>
+                  </div>
+                  <div style={{ width: '100%', height: '8px', background: 'var(--border-light)', borderRadius: '4px', overflow: 'hidden', marginBottom: '1.5rem' }}>
+                    <div style={{ width: `${prog.progress}%`, height: '100%', background: 'var(--accent-primary)' }}></div>
+                  </div>
 
-          {/* Card 2 */}
-          <div style={{ 
-            flex: "1 1 300px", maxWidth: "380px", borderRadius: "16px", overflow: "hidden", 
-            border: "1px solid var(--border-light)", backgroundColor: "white",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.05)", transition: "transform 0.3s ease"
-          }}>
-            <div style={{ height: "200px", backgroundColor: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-              <div style={{ position: "absolute", top: "15px", left: "15px", backgroundColor: "white", padding: "4px 10px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 700, color: "#10b981" }}>
-                CORPORATE
-              </div>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                  <Link href={`/programs/${prog.programId}/steps`} style={{ textDecoration: 'none', background: 'var(--accent-primary)', color: 'white', padding: '0.6rem 1.2rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, display: 'inline-block' }}>
+                    Resume Learning
+                  </Link>
+                </div>
+              ))}
             </div>
-            <div style={{ padding: "1.5rem" }}>
-              <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.25rem", color: "var(--text-primary)" }}>Corporate Resilience</h3>
-              <p style={{ margin: "0 0 1.5rem 0", fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                A custom 4-week workshop for your leadership team to foster mental well-being in the workplace.
-              </p>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--text-primary)" }}>Custom</span>
-                <Link href="/login" style={{ color: "#10b981", fontWeight: 600, textDecoration: "none", fontSize: "0.95rem" }}>Contact Us &rarr;</Link>
-              </div>
-            </div>
-          </div>
-
+          )}
         </div>
-      </section>
 
-      {/* INSTRUCTOR SECTION */}
-      <section id="about" style={{ padding: "6rem 2rem", backgroundColor: "#f9fafb", display: "flex", justifyContent: "center" }}>
-        <div style={{ maxWidth: "1000px", width: "100%", display: "flex", gap: "4rem", alignItems: "center", flexWrap: "wrap" }}>
-          <div style={{ flex: 1, minWidth: "300px" }}>
-            <div style={{ width: "100%", aspectRatio: "1/1", backgroundColor: "#e5e7eb", borderRadius: "20px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ color: "#9ca3af", fontSize: "1.2rem" }}>[Roweena Photo]</span>
+        {/* Right Side Upper: Sessions & Achievements */}
+        <div className={styles.rightColumn}>
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h3 style={{ fontSize: '0.95rem' }}><Icons.SessionCal /> Today's Sessions</h3>
+              <Link href="/live" className={styles.cardLink} style={{ fontSize: '0.75rem' }}>View Calendar <Icons.ArrowRight /></Link>
+            </div>
+            <div className={styles.emptyState}>
+              <div style={{ color: 'var(--border-light)', marginBottom: '0.5rem' }}><Icons.SessionCal /></div>
+              <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.2rem 0' }}>No upcoming sessions</h4>
+              <p style={{ fontSize: '0.75rem' }}>You don't have any live sessions scheduled yet. Check back later!</p>
             </div>
           </div>
-          <div style={{ flex: 1.5, minWidth: "300px" }}>
-            <h2 style={{ fontSize: "2.5rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "1.5rem" }}>Meet Roweena Britto</h2>
-            <p style={{ fontSize: "1.1rem", color: "var(--text-secondary)", marginBottom: "1rem", lineHeight: 1.6 }}>
-              Roweena is a certified Brain-Health Coach and the founder of WhatBoutMe. With over a decade of experience, she has helped thousands of individuals and corporate teams unlock their full potential.
-            </p>
-            <p style={{ fontSize: "1.1rem", color: "var(--text-secondary)", marginBottom: "2rem", lineHeight: 1.6 }}>
-              Her unique "11 Steps to U" framework combines neuroscience, psychology, and practical habits to build unbreakable mental resilience.
-            </p>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <li style={{ display: "flex", alignItems: "center", gap: "0.75rem", fontSize: "1rem", color: "var(--text-primary)", fontWeight: 500 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Certified Brain-Health Coach
-              </li>
-              <li style={{ display: "flex", alignItems: "center", gap: "0.75rem", fontSize: "1rem", color: "var(--text-primary)", fontWeight: 500 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                International Speaker & Author
-              </li>
-            </ul>
+
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h3 style={{ fontSize: '0.95rem' }}><Icons.Trophy /> Achievements</h3>
+            </div>
+            <div className={styles.emptyState}>
+              <div style={{ marginBottom: '0.5rem' }}><Icons.Trophy /></div>
+              <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.2rem 0' }}>Complete your first course</h4>
+              <p style={{ fontSize: '0.75rem' }}>Earn badges and certificates as you progress.</p>
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* FOOTER */}
-      <footer style={{ padding: "4rem 2rem", backgroundColor: "#1f2937", color: "white", textAlign: "center" }}>
-        <h3 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "1rem" }}>WhatBoutMe FZE</h3>
-        <p style={{ color: "#9ca3af", marginBottom: "2rem", maxWidth: "400px", margin: "0 auto 2rem" }}>
-          Empowering individuals and teams through neuroscience and practical resilience training.
-        </p>
-        <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>&copy; 2026 WhatBoutMe FZE. All rights reserved.</p>
-      </footer>
+        {/* Right Side Lower: Activity & Tips */}
+        <div className={styles.rightColumn}>
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h3 style={{ fontSize: '0.95rem' }}><Icons.Clock /> Recent Activity</h3>
+            </div>
+            <div className={styles.emptyState}>
+              <div style={{ color: 'var(--border-light)', marginBottom: '0.5rem' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              </div>
+              <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.2rem 0' }}>Nothing yet</h4>
+              <p style={{ fontSize: '0.75rem' }}>Your learning activity will appear here once you start a program.</p>
+            </div>
+          </div>
+
+          <div className={styles.tipsCard}>
+            <div className={styles.tipsContent}>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <Icons.Bulb />
+                <h4 style={{ margin: 0, fontSize: '0.85rem' }}>Tip: Start with a program you're interested in</h4>
+              </div>
+              <p style={{ fontSize: '0.75rem' }}>Explore our curated programs to gain new skills and advance your career.</p>
+              <div style={{ fontSize: '2rem', marginTop: '1rem' }}>📚</div>
+            </div>
+          </div>
+        </div>
+
+      </section>
     </div>
   );
 }

@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 export default function Topbar() {
   const pathname = usePathname();
 
-  // Hide topbar on public marketing page, login, and signup
-  if (pathname === "/" || pathname === "/login" || pathname === "/signup") {
+  // Hide topbar on login and signup
+  if (pathname === "/login" || pathname === "/signup") {
     return null;
   }
 
