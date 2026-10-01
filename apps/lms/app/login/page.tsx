@@ -66,6 +66,11 @@ function LoginForm() {
             <label>Password</label>
             <input type="password" required placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
           </div>
+
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+            <button type="button" onClick={() => { setEmail('learner1@whatboutme.com'); setPassword('Learner@2026'); }} style={{ padding: '5px 10px', fontSize: '12px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}>Fill Learner 1</button>
+            <button type="button" onClick={() => { setEmail('learner2@whatboutme.com'); setPassword('Learner@2026'); }} style={{ padding: '5px 10px', fontSize: '12px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}>Fill Learner 2</button>
+          </div>
           
           <button type="submit" className={styles.submitBtn}>Sign In</button>
         </form>

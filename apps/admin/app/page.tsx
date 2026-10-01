@@ -25,9 +25,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+        const token = localStorage.getItem("token");
+        const headers = { Authorization: `Bearer ${token}` };
+        
         const [usersRes, batchesRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/users`),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/batches`)
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/users`, { headers }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/batches`, { headers })
         ]);
 
         if (usersRes.ok && batchesRes.ok) {

@@ -63,6 +63,12 @@ export default function AdminLogin() {
             <label>Password</label>
             <input type="password" required placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
           </div>
+
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => { setEmail('super@whatboutme.com'); setPassword('Learner@2026'); }} style={{ flex: 1, padding: '5px', fontSize: '11px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: 'black' }}>Super Admin</button>
+            <button type="button" onClick={() => { setEmail('admin@whatboutme.com'); setPassword('Learner@2026'); }} style={{ flex: 1, padding: '5px', fontSize: '11px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: 'black' }}>Admin</button>
+            <button type="button" onClick={() => { setEmail('manager@whatboutme.com'); setPassword('Learner@2026'); }} style={{ flex: 1, padding: '5px', fontSize: '11px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: 'black' }}>Manager</button>
+          </div>
           
           <button type="submit" className={styles.loginBtn} disabled={loading}>
             {loading ? "Signing in..." : "Sign In"}

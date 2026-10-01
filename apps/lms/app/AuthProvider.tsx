@@ -12,7 +12,17 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     const rawFetch = window.fetch;
     const originalFetch = window.fetch.bind(window);
     window.fetch = async (input, init) => {
-      let response = await originalFetch(input, init);
+      const token = localStorage.getItem('token');
+      let newInit = init;
+      if (token && typeof input === 'string' && input.includes(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000')) {
+        const headers = new Headers(init?.headers);
+        if (!headers.has('Authorization')) {
+          headers.set('Authorization', `Bearer ${token}`);
+          newInit = { ...init, headers };
+        }
+      }
+
+      let response = await originalFetch(input, newInit);
       
       if (response.status === 401) {
         // Clone response to read body
