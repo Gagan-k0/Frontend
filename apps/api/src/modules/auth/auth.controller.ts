@@ -21,7 +21,7 @@ export class RefreshDto {
 }
 
 @Controller('auth')
-@Throttle({ auth: { limit: 5, ttl: 60000 } })
+@Throttle({ default: { limit: 5, ttl: 60000 } })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

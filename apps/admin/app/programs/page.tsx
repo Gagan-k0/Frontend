@@ -3,6 +3,7 @@
 import { useEffect, useState, FormEvent } from "react";
 import styles from "../page.module.css";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Program {
   id: string;
@@ -15,6 +16,7 @@ interface Program {
 }
 
 export default function ProgramsPage() {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProgramId, setEditingProgramId] = useState<string | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -115,12 +117,17 @@ export default function ProgramsPage() {
       });
 
       if (res.ok) {
+        const savedProgram = await res.json();
         setIsModalOpen(false);
         setTitle("");
         setPrice("");
         setDescription("");
         setEditingProgramId(null);
-        fetchPrograms(); // Refresh list
+        if (editingProgramId) {
+          fetchPrograms();
+        } else {
+          router.push(`/programs/${savedProgram.id}`);
+        }
       }
     } catch (e) {
       console.error("Failed to save program", e);
@@ -132,7 +139,7 @@ export default function ProgramsPage() {
       <header className={styles.header}>
         <div className={styles.headerText}>
           <h1 className={styles.title}>Programs & Curriculum</h1>
-          <p className={styles.subtitle}>Manage your courses, videos, and step requirements.</p>
+          <p className={styles.subtitle}>Create a program, then build its curriculum with modules and learning content.</p>
         </div>
         <div className={styles.headerActions}>
           <button className={styles.primaryBtn} onClick={openCreateModal}>
@@ -262,7 +269,9 @@ export default function ProgramsPage() {
 
               <div className={styles.modalFooter}>
                 <button type="button" className={styles.secondaryBtn} onClick={() => setIsModalOpen(false)}>Cancel</button>
-                <button type="submit" className={styles.primaryBtn}>Save Program</button>
+                <button type="submit" className={styles.primaryBtn}>
+                  {editingProgramId ? "Save Program" : "Create & Add Curriculum"}
+                </button>
               </div>
             </form>
           </div>

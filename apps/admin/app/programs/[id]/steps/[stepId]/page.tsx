@@ -12,17 +12,24 @@ interface Lesson {
   mediaUrl: string;
 }
 
+interface StepDetails {
+  title: string;
+  description?: string;
+}
+
 export default function StepLessonsPage({ params }: { params: Promise<{ id: string, stepId: string }> }) {
   const resolvedParams = use(params);
   const { id: programId, stepId } = resolvedParams;
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [quiz, setQuiz] = useState<any>(null);
+  const [step, setStep] = useState<StepDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploadUrl, setUploadUrl] = useState("");
   const [uploadId, setUploadId] = useState("");
   const [title, setTitle] = useState("");
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [uploadError, setUploadError] = useState("");
 
   useEffect(() => {
     fetchLessons();
@@ -33,6 +40,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/programs/steps/${stepId}`);
       if (res.ok) {
         const data = await res.json();
+        setStep(data);
         setLessons(data.lessons || []);
         setQuiz(data.quiz || null);
       }
@@ -63,6 +71,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
     setTitle("");
     setUploadUrl("");
     setUploadProgress(null);
+    setUploadError("");
     setIsModalOpen(true);
     
     try {
@@ -74,6 +83,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
       }
     } catch (e) {
       console.error("Failed to get upload URL", e);
+      setUploadError("We couldn't prepare a secure upload. Please close this window and try again.");
     }
   };
 
@@ -94,6 +104,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
       }
     } catch (e) {
       console.error("Failed to save lesson", e);
+      setUploadError("Your video uploaded, but we couldn't add it to this module. Please try again.");
     }
   };
 
@@ -103,23 +114,26 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
         <div className={styles.headerText}>
           <div style={{display: 'flex', alignItems: 'center', gap: '15px'}}>
             <Link href={`/programs/${programId}`} style={{textDecoration: 'none', color: 'var(--primary)', fontSize: '1.2rem'}}>← Back to Sections</Link>
-            <h1 className={styles.title}>Manage Lessons</h1>
+            <h1 className={styles.title}>{step?.title || "Module content"}</h1>
           </div>
-          <p className={styles.subtitle}>Upload videos or add quizzes to this section.</p>
+          <p className={styles.subtitle}>{step?.description || "Add the learning content for this module."}</p>
         </div>
         <div className={styles.headerActions}>
           <Link href={`/quizzes/create?programId=${programId}&stepId=${stepId}`} className={styles.secondaryBtn}>
-            + Add Quiz
+            + Add quiz
           </Link>
           <button className={styles.primaryBtn} onClick={openUploadModal}>
-            + Upload Video (Mux)
+            + Add video
           </button>
         </div>
       </header>
 
       <section className={styles.tableSection}>
         <div className={styles.sectionHeader}>
-          <h2>Lessons in this Step</h2>
+          <div>
+            <h2>Learning content</h2>
+            <p className={styles.sectionSubtitle}>{lessons.length + (quiz ? 1 : 0)} {lessons.length + (quiz ? 1 : 0) === 1 ? "item" : "items"} in this module</p>
+          </div>
         </div>
         
         <div className={styles.tableWrapper}>
@@ -137,10 +151,17 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
                 <tr>
                   <td colSpan={4} style={{textAlign: "center", padding: "20px"}}>Loading lessons...</td>
                 </tr>
-              ) : lessons.length === 0 ? (
-                <tr>
-                  <td colSpan={4} style={{textAlign: "center", padding: "20px"}}>No lessons found. Upload a video!</td>
-                </tr>
+              ) : lessons.length === 0 && !quiz ? (
+                <tr><td colSpan={4}>
+                  <div className={styles.emptyState}>
+                    <strong>This module is ready for content</strong>
+                    <span>Add a video lesson, a knowledge-check quiz, or both.</span>
+                    <div className={styles.rowActions}>
+                      <button className={styles.primaryBtn} onClick={openUploadModal}>+ Add video</button>
+                      <Link href={`/quizzes/create?programId=${programId}&stepId=${stepId}`} className={styles.secondaryBtn}>+ Add quiz</Link>
+                    </div>
+                  </div>
+                </td></tr>
               ) : lessons.map((lesson) => (
                 <tr key={lesson.id}>
                   <td><span className={styles.cellUserName}>{lesson.title}</span></td>
@@ -183,18 +204,21 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
         <div className={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
           <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2>Upload Video Lesson</h2>
-              <button className={styles.closeBtn} onClick={() => setIsModalOpen(false)}>×</button>
+              <div>
+                <h2>Add video lesson</h2>
+                <p className={styles.modalIntro}>Give the lesson a clear name, then choose the video file to upload.</p>
+              </div>
+              <button className={styles.closeBtn} aria-label="Close add video dialog" onClick={() => setIsModalOpen(false)}>×</button>
             </div>
             
             <div className={styles.modalForm}>
               <div className={styles.formGroup}>
-                <label>Lesson Title</label>
-                <input type="text" placeholder="e.g. Video: Introduction" value={title} onChange={(e) => setTitle(e.target.value)} />
+                <label htmlFor="lesson-title">Lesson title</label>
+                <input id="lesson-title" type="text" placeholder="e.g. Introduction to resilience" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus />
               </div>
 
               <div className={styles.formGroup} style={{marginTop: '20px'}}>
-                <label>Select Video File</label>
+                <label>Select video file</label>
                 {uploadUrl ? (
                   <>
                     <MuxUploader
@@ -206,7 +230,7 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
                       <div style={{ marginTop: '15px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '500', color: 'var(--textSecondary)' }}>
                           <span>Uploading...</span>
-                          <span>{Math.round(uploadProgress)}% pending</span>
+                          <span>{Math.round(uploadProgress)}%</span>
                         </div>
                         <div style={{ width: '100%', backgroundColor: '#eaeaea', borderRadius: '8px', height: '10px', overflow: 'hidden' }}>
                           <div style={{ 
@@ -221,9 +245,10 @@ export default function StepLessonsPage({ params }: { params: Promise<{ id: stri
                     )}
                   </>
                 ) : (
-                  <p>Generating secure upload link...</p>
+                  <p className={styles.cellTextMuted}>Preparing a secure upload…</p>
                 )}
               </div>
+              {uploadError && <p className={styles.formError} role="alert">{uploadError}</p>}
             </div>
           </div>
         </div>

@@ -31,11 +31,6 @@ import { UpstashThrottlerStorage } from './common/throttler/upstash.storage.js';
             name: 'default',
             ttl: 60000,
             limit: 100, // 100 reqs / min
-          },
-          {
-            name: 'auth',
-            ttl: 60000,
-            limit: 5, // 5 reqs / min
           }
         ],
         storage: new UpstashThrottlerStorage(),
