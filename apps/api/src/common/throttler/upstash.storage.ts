@@ -1,4 +1,4 @@
-import { ThrottlerStorage, ThrottlerStorageRecord } from '@nestjs/throttler';
+import { ThrottlerStorage } from '@nestjs/throttler';
 import { Redis } from '@upstash/redis';
 import { Injectable } from '@nestjs/common';
 
@@ -19,7 +19,7 @@ export class UpstashThrottlerStorage implements ThrottlerStorage {
     limit: number,
     blockDuration: number,
     throttlerName: string,
-  ): Promise<ThrottlerStorageRecord> {
+  ) {
     const prefixedKey = `throttler:${throttlerName}:${key}`;
     const blockKey = `${prefixedKey}:blocked`;
     
