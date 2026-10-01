@@ -5,12 +5,27 @@ import { useEffect, useState } from "react";
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
+  const [programs, setPrograms] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
     window.addEventListener("scroll", handleScroll);
+    
+    // Fetch live courses from API
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs`)
+      .then(res => res.json())
+      .then(data => {
+        setPrograms(data.filter((p: any) => p.isActive));
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch programs:", err);
+        setLoading(false);
+      });
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -110,57 +125,110 @@ export default function LandingPage() {
 
       {/* FEATURED PROGRAMS SECTION */}
       <section id="programs" style={{ padding: "6rem 2rem", backgroundColor: "white", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <h2 style={{ fontSize: "2.5rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "1rem" }}>Featured Programs</h2>
+        <h2 style={{ fontSize: "2.5rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "1rem" }}>Available Programs</h2>
         <p style={{ fontSize: "1.1rem", color: "var(--text-secondary)", marginBottom: "4rem", textAlign: "center", maxWidth: "600px" }}>
-          Whether you are an individual looking for self-improvement or a corporate team building resilience, we have a path for you.
+          Explore our expert-led courses designed to help you build unbreakable mental resilience and reach your full potential.
         </p>
 
-        <div style={{ display: "flex", gap: "2rem", maxWidth: "1000px", width: "100%", flexWrap: "wrap", justifyContent: "center" }}>
+        <div style={{ display: "flex", gap: "2rem", maxWidth: "1200px", width: "100%", flexWrap: "wrap", justifyContent: "center" }}>
           
-          {/* Card 1 */}
-          <div style={{ 
-            flex: "1 1 300px", maxWidth: "380px", borderRadius: "16px", overflow: "hidden", 
-            border: "1px solid var(--border-light)", backgroundColor: "white",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.05)", transition: "transform 0.3s ease"
-          }}>
-            <div style={{ height: "200px", backgroundColor: "#eef2ff", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-              <div style={{ position: "absolute", top: "15px", left: "15px", backgroundColor: "white", padding: "4px 10px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 700, color: "var(--accent-primary)" }}>
-                CERTIFICATION
-              </div>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          {loading ? (
+            <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-secondary)" }}>
+              Loading programs...
             </div>
-            <div style={{ padding: "1.5rem" }}>
-              <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.25rem", color: "var(--text-primary)" }}>11 Steps to U Masterclass</h3>
-              <p style={{ margin: "0 0 1.5rem 0", fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                The flagship certification program. Master your mindset, overcome anxiety, and build lasting resilience.
-              </p>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--text-primary)" }}>$1,999</span>
-                <Link href="/login" style={{ color: "var(--accent-primary)", fontWeight: 600, textDecoration: "none", fontSize: "0.95rem" }}>View Details &rarr;</Link>
+          ) : programs.length === 0 ? (
+            <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-secondary)" }}>
+              No active programs found right now. Please check back later!
+            </div>
+          ) : (
+            programs.map((program, idx) => (
+              <div key={program.id} style={{ 
+                flex: "1 1 320px", maxWidth: "380px", borderRadius: "16px", overflow: "hidden", 
+                border: "1px solid var(--border-light)", backgroundColor: "white",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.05)", transition: "transform 0.3s ease",
+                display: "flex", flexDirection: "column"
+              }}>
+                <div style={{ height: "180px", backgroundColor: idx % 2 === 0 ? "#eef2ff" : "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+                  <div style={{ position: "absolute", top: "15px", left: "15px", backgroundColor: "white", padding: "4px 10px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 700, color: idx % 2 === 0 ? "var(--accent-primary)" : "#10b981" }}>
+                    {program.type?.toUpperCase() || "COURSE"}
+                  </div>
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke={idx % 2 === 0 ? "var(--accent-primary)" : "#10b981"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                  </svg>
+                </div>
+                <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", flex: 1 }}>
+                  <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.25rem", color: "var(--text-primary)" }}>{program.title}</h3>
+                  <p style={{ margin: "0 0 1.5rem 0", fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.5, flex: 1 }}>
+                    {program.description || "Join this amazing program to transform your life and build lasting habits."}
+                  </p>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto" }}>
+                    <span style={{ fontWeight: 700, fontSize: "1.25rem", color: "var(--text-primary)" }}>
+                      ${program.price}
+                    </span>
+                    <Link href={`/login`} style={{ color: "white", backgroundColor: "var(--accent-primary)", padding: "0.5rem 1rem", borderRadius: "6px", fontWeight: 600, textDecoration: "none", fontSize: "0.9rem" }}>
+                      Enroll Now
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+
+        </div>
+      </section>
+
+      {/* TESTIMONIALS SECTION (DUMMY CONTENT) */}
+      <section style={{ padding: "6rem 2rem", backgroundColor: "#f3f4f6", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <h2 style={{ fontSize: "2.5rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "3rem", textAlign: "center" }}>
+          What Our Students Say
+        </h2>
+        <div style={{ display: "flex", gap: "2rem", maxWidth: "1200px", width: "100%", flexWrap: "wrap", justifyContent: "center" }}>
+          
+          <div style={{ flex: "1 1 300px", backgroundColor: "white", padding: "2rem", borderRadius: "16px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", gap: "0.2rem", marginBottom: "1rem", color: "#fbbf24" }}>
+              {"★★★★★"}
+            </div>
+            <p style={{ fontSize: "1.05rem", color: "var(--text-secondary)", fontStyle: "italic", marginBottom: "1.5rem", lineHeight: 1.6 }}>
+              "The 11 Steps to U Masterclass completely changed how I approach stress at work. I now have the mental tools to stay calm and focused under pressure. Highly recommended!"
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <div style={{ width: "45px", height: "45px", borderRadius: "50%", backgroundColor: "#e0e7ff" }}></div>
+              <div>
+                <h4 style={{ margin: 0, fontSize: "1rem", color: "var(--text-primary)" }}>Sarah Jenkins</h4>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>Marketing Director</span>
               </div>
             </div>
           </div>
 
-          {/* Card 2 */}
-          <div style={{ 
-            flex: "1 1 300px", maxWidth: "380px", borderRadius: "16px", overflow: "hidden", 
-            border: "1px solid var(--border-light)", backgroundColor: "white",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.05)", transition: "transform 0.3s ease"
-          }}>
-            <div style={{ height: "200px", backgroundColor: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-              <div style={{ position: "absolute", top: "15px", left: "15px", backgroundColor: "white", padding: "4px 10px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: 700, color: "#10b981" }}>
-                CORPORATE
-              </div>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <div style={{ flex: "1 1 300px", backgroundColor: "white", padding: "2rem", borderRadius: "16px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", gap: "0.2rem", marginBottom: "1rem", color: "#fbbf24" }}>
+              {"★★★★★"}
             </div>
-            <div style={{ padding: "1.5rem" }}>
-              <h3 style={{ margin: "0 0 0.5rem 0", fontSize: "1.25rem", color: "var(--text-primary)" }}>Corporate Resilience</h3>
-              <p style={{ margin: "0 0 1.5rem 0", fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                A custom 4-week workshop for your leadership team to foster mental well-being in the workplace.
-              </p>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--text-primary)" }}>Custom</span>
-                <Link href="/login" style={{ color: "#10b981", fontWeight: 600, textDecoration: "none", fontSize: "0.95rem" }}>Contact Us &rarr;</Link>
+            <p style={{ fontSize: "1.05rem", color: "var(--text-secondary)", fontStyle: "italic", marginBottom: "1.5rem", lineHeight: 1.6 }}>
+              "We brought Roweena's Corporate Resilience program to our startup and the change in team morale was immediate. The ROI on our team's mental health is immeasurable."
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <div style={{ width: "45px", height: "45px", borderRadius: "50%", backgroundColor: "#d1fae5" }}></div>
+              <div>
+                <h4 style={{ margin: 0, fontSize: "1rem", color: "var(--text-primary)" }}>David Chen</h4>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>Startup Founder</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ flex: "1 1 300px", backgroundColor: "white", padding: "2rem", borderRadius: "16px", boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}>
+            <div style={{ display: "flex", gap: "0.2rem", marginBottom: "1rem", color: "#fbbf24" }}>
+              {"★★★★★"}
+            </div>
+            <p style={{ fontSize: "1.05rem", color: "var(--text-secondary)", fontStyle: "italic", marginBottom: "1.5rem", lineHeight: 1.6 }}>
+              "I've taken dozens of self-improvement courses, but none provided the practical, step-by-step neuroscience approach that WhatBoutMe offers. It's truly life-changing."
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <div style={{ width: "45px", height: "45px", borderRadius: "50%", backgroundColor: "#fce7f3" }}></div>
+              <div>
+                <h4 style={{ margin: 0, fontSize: "1rem", color: "var(--text-primary)" }}>Emily Rodriguez</h4>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>Freelance Designer</span>
               </div>
             </div>
           </div>
