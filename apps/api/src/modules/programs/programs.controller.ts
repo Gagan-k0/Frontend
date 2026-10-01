@@ -62,6 +62,7 @@ export class ProgramsController {
     return this.programsService.remove(id);
   }
 
+  @Public()
   @Get(':id/steps')
   getSteps(@Param('id') id: string) {
     return this.programsService.getSteps(id);

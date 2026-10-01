@@ -13,9 +13,16 @@ export default function ProgramStepsPage({ params }: { params: Promise<{ id: str
 
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/programs/${unwrappedParams.id}/steps`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error("Unauthorized or failed to fetch");
+        return res.json();
+      })
       .then(data => {
-        setSteps(data);
+        if (Array.isArray(data)) {
+          setSteps(data);
+        } else {
+          setSteps([]);
+        }
         setLoading(false);
         // Load progress from local storage
         const savedProgress = localStorage.getItem(`progress_${unwrappedParams.id}`);
