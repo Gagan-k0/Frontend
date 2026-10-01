@@ -235,7 +235,7 @@
 }
 
 .tableWrapper {
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .adminTable {
