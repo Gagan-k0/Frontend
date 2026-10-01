@@ -9,7 +9,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     // 1. Monkey-patch window.fetch
-    const originalFetch = window.fetch;
+    const rawFetch = window.fetch;
+    const originalFetch = window.fetch.bind(window);
     window.fetch = async (input, init) => {
       let response = await originalFetch(input, init);
       
@@ -83,7 +84,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     }, 60000);
 
     return () => {
-      window.fetch = originalFetch;
+      window.fetch = rawFetch;
       clearInterval(pollInterval);
     };
   }, [router]);
