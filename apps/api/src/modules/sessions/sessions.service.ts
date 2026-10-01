@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { ZoomService } from './zoom.service.js';
 
 @Injectable()
 export class SessionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private zoomService: ZoomService
+  ) {}
 
   // 1. Get all sessions for a specific batch
   async getSessionsByBatch(batchId: string) {
@@ -19,13 +23,24 @@ export class SessionsService {
 
   // 2. Create a session for a batch
   async createSession(data: { batchId: string, title: string, startTime: string, endTime: string, joinUrl?: string, recordingUrl?: string, quizId?: string }) {
+    let finalJoinUrl = data.joinUrl;
+    
+    // If no join URL was provided, automatically generate a Zoom meeting
+    if (!finalJoinUrl || finalJoinUrl.trim() === '') {
+      const start = new Date(data.startTime);
+      const end = new Date(data.endTime);
+      const durationMin = Math.round((end.getTime() - start.getTime()) / 60000);
+      
+      finalJoinUrl = await this.zoomService.createMeeting(data.title, start, durationMin);
+    }
+
     return this.prisma.session.create({
       data: {
         batchId: data.batchId,
         title: data.title,
         startTime: new Date(data.startTime),
         endTime: new Date(data.endTime),
-        joinUrl: data.joinUrl || null,
+        joinUrl: finalJoinUrl || null,
         recordingUrl: data.recordingUrl || null,
         quizId: data.quizId || null,
       }
