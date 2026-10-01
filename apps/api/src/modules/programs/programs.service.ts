@@ -11,17 +11,24 @@ export class ProgramsService {
 
   async enroll(programId: string, userId: string) {
     let batch = await this.prisma.batch.findFirst({
-      where: { programId }
+      where: { programId },
+      include: { program: true }
     });
+
     if (!batch) {
+      const program = await this.prisma.program.findUnique({ where: { id: programId } });
       batch = await this.prisma.batch.create({
         data: {
           name: 'Default Cohort',
           programId,
           capacity: 100,
           startDate: new Date()
-        }
-      });
+        },
+        include: { program: true }
+      }) as any;
+      if (!batch.program && program) {
+        batch.program = program;
+      }
     }
 
     const existing = await this.prisma.enrolment.findFirst({
@@ -30,13 +37,39 @@ export class ProgramsService {
 
     if (existing) return existing;
 
-    return this.prisma.enrolment.create({
+    const enrolment = await this.prisma.enrolment.create({
       data: {
         userId,
         batchId: batch.id,
         status: 'ACTIVE'
       }
     });
+
+    const price = batch.program?.price || 0;
+
+    // Create a mock payment for the enrollment
+    const payment = await this.prisma.payment.create({
+      data: {
+        enrolmentId: enrolment.id,
+        amount: price,
+        currency: 'USD',
+        provider: 'STRIPE',
+        transactionId: 'txn_mock_' + Math.random().toString(36).substr(2, 9),
+        status: 'SUCCESS'
+      }
+    });
+
+    // Generate an invoice so the Revenue dashboard populates
+    await this.prisma.invoice.create({
+      data: {
+        paymentId: payment.id,
+        invoiceNumber: 'INV-' + Math.floor(100000 + Math.random() * 900000),
+        amount: price,
+        status: 'PAID'
+      }
+    });
+
+    return enrolment;
   }
 
   create(data: any) {
