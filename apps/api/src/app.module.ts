@@ -19,21 +19,28 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './modules/auth/jwt-auth.guard.js';
 import { RolesGuard } from './common/guards/roles.guard.js';
 
+import { UpstashThrottlerStorage } from './common/throttler/upstash.storage.js';
+
 @Module({
   imports: [
     PrismaModule,
-    ThrottlerModule.forRoot([
-      {
-        name: 'default',
-        ttl: 60000,
-        limit: 100, // 100 reqs / min
-      },
-      {
-        name: 'auth',
-        ttl: 60000,
-        limit: 5, // 5 reqs / min
-      }
-    ]),
+    ThrottlerModule.forRootAsync({
+      useFactory: () => ({
+        throttlers: [
+          {
+            name: 'default',
+            ttl: 60000,
+            limit: 100, // 100 reqs / min
+          },
+          {
+            name: 'auth',
+            ttl: 60000,
+            limit: 5, // 5 reqs / min
+          }
+        ],
+        storage: new UpstashThrottlerStorage(),
+      }),
+    }),
     UsersModule,
     ProgramsModule,
     BatchesModule,
