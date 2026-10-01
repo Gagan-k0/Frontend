@@ -51,13 +51,13 @@ function CheckoutContent() {
 
     try {
       const token = localStorage.getItem("token");
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/programs/enroll`, {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/checkout/mock`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ programId, userId: user.id }),
+        body: JSON.stringify({ programId }),
       });
       // Redirect to dashboard after successful payment/enrolment
       router.push("/");

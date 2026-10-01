@@ -1,7 +1,10 @@
 import { Controller, Get } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { Roles } from '../../common/decorators/roles.decorator.js';
+import { Role } from '@prisma/client';
 
 @Controller('revenue')
+@Roles(Role.SUPER_ADMIN, Role.ADMIN)
 export class RevenueController {
   constructor(private prisma: PrismaService) {}
 

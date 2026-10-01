@@ -11,36 +11,33 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
   const [step, setStep] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [playbackId, setPlaybackId] = useState<string | null>(null);
+  const [playbackToken, setPlaybackToken] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [quizResult, setQuizResult] = useState<{ passed: boolean; score: number; message: string } | null>(null);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/programs/steps/${stepId}`)
+    // Add auth token if we had a proper fetch abstraction
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const headers: any = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/programs/steps/${stepId}`, { headers })
       .then(res => res.json())
       .then(data => {
         setStep(data);
         
-        // Handle resolving Mux playback ID
         const lesson = data.lessons?.[0];
-        let uploadId = null;
-
-        if (lesson && lesson.mediaUrl?.startsWith('upload:')) {
-          uploadId = lesson.mediaUrl.replace('upload:', '');
-        } else if (lesson && lesson.mediaUrl?.includes('/upload/')) {
-          // Backwards compatibility for raw Mux direct upload URLs
-          try {
-            uploadId = lesson.mediaUrl.split('/upload/')[1].split('?')[0];
-          } catch (e) {}
-        }
-
-        if (uploadId) {
-          fetch(`${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}`}`}/mux/upload/${uploadId}`)
+        
+        if (lesson && lesson.id) {
+          // Fetch the secure playback token from the API
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/mux/secure-playback/${lesson.id}`, { headers })
             .then(r => r.json())
             .then(muxData => {
-              if (muxData.status === 'ready' && muxData.playbackId) {
+              if (muxData.token) {
+                setPlaybackToken(muxData.token);
                 setPlaybackId(muxData.playbackId);
               } else {
-                setPlaybackId("DS00Spx1CV902MCtPj5WknGlR102V5HFkDe"); // Fallback if still processing
+                setPlaybackId("DS00Spx1CV902MCtPj5WknGlR102V5HFkDe");
               }
               setLoading(false);
             })
@@ -48,9 +45,6 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
               setPlaybackId("DS00Spx1CV902MCtPj5WknGlR102V5HFkDe"); // Fallback
               setLoading(false);
             });
-        } else if (lesson) {
-          setPlaybackId(lesson.mediaUrl);
-          setLoading(false);
         } else {
           setLoading(false);
         }
@@ -127,6 +121,7 @@ export default function StepPage({ params }: { params: Promise<{ stepId: string 
             <div className={styles.videoContainer}>
               <MuxPlayer
                 playbackId={playbackId || "DS00Spx1CV902MCtPj5WknGlR102V5HFkDe"}
+                tokens={playbackToken ? { playback: playbackToken } : undefined}
                 metadata={{ video_title: lesson.title }}
                 style={{ width: "100%", aspectRatio: "16/9" }}
               />

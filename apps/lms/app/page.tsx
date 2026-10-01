@@ -30,17 +30,29 @@ interface EnrolledProgram {
   progress: number;
 }
 
+interface Session {
+  id: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  joinUrl: string | null;
+  recordingUrl: string | null;
+  quizId: string | null;
+}
+
 interface UserProfile {
   id: string;
   email: string;
   name: string;
   role: string;
   enrolledPrograms: EnrolledProgram[];
+  upcomingSessions: Session[];
 }
 
 export default function LearnerDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
+  const [certificates, setCertificates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -63,10 +75,36 @@ export default function LearnerDashboard() {
       })
       .then((profile: UserProfile) => {
         setUser(profile);
+        // Also fetch their certificates
+        return fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/certificates/mine`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      })
+      .then(res => res.ok ? res.json() : [])
+      .then(certs => {
+        setCertificates(certs);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [router]);
+
+  const requestCertificate = async (enrolmentId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/certificates/request/${enrolmentId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        alert("Certificate requested! It is now pending Admin approval.");
+        window.location.reload();
+      } else {
+        alert("Failed to request certificate. You may have already requested it.");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   if (loading) {
     return (
@@ -142,7 +180,7 @@ export default function LearnerDashboard() {
             </div>
             <div className={styles.statText}>
               <h4>Live Sessions</h4>
-              <h2>0</h2>
+              <h2>{user.upcomingSessions?.length || 0}</h2>
               <p>Upcoming sessions</p>
             </div>
           </div>
@@ -156,7 +194,7 @@ export default function LearnerDashboard() {
             </div>
             <div className={styles.statText}>
               <h4>Certificates</h4>
-              <h2>0</h2>
+              <h2>{certificates.length}</h2>
               <p>Certificates earned</p>
             </div>
           </div>
@@ -225,25 +263,115 @@ export default function LearnerDashboard() {
         <div className={styles.rightColumn}>
           <div className={styles.card}>
             <div className={styles.cardHeader}>
-              <h3 style={{ fontSize: '0.95rem' }}><Icons.SessionCal /> Today's Sessions</h3>
+              <h3 style={{ fontSize: '0.95rem' }}><Icons.SessionCal /> Upcoming Sessions</h3>
               <Link href="/live" className={styles.cardLink} style={{ fontSize: '0.75rem' }}>View Calendar <Icons.ArrowRight /></Link>
             </div>
-            <div className={styles.emptyState}>
-              <div style={{ color: 'var(--border-light)', marginBottom: '0.5rem' }}><Icons.SessionCal /></div>
-              <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.2rem 0' }}>No upcoming sessions</h4>
-              <p style={{ fontSize: '0.75rem' }}>You don't have any live sessions scheduled yet. Check back later!</p>
-            </div>
+            
+            {(!user.upcomingSessions || user.upcomingSessions.length === 0) ? (
+              <div className={styles.emptyState}>
+                <div style={{ color: 'var(--border-light)', marginBottom: '0.5rem' }}><Icons.SessionCal /></div>
+                <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.2rem 0' }}>No upcoming sessions</h4>
+                <p style={{ fontSize: '0.75rem' }}>You don't have any live sessions scheduled yet. Check back later!</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                {user.upcomingSessions.map((session) => {
+                  const now = new Date();
+                  const startTime = new Date(session.startTime);
+                  const endTime = new Date(session.endTime);
+                  
+                  // Check-in window opens 5 mins before start
+                  const checkInOpen = now >= new Date(startTime.getTime() - 5 * 60000) && now <= endTime;
+
+                  const handleCheckIn = async () => {
+                    try {
+                      const token = localStorage.getItem("token");
+                      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/sessions/${session.id}/attend`, {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${token}` }
+                      });
+                      if (res.ok) {
+                        alert("Checked in successfully!");
+                        // Optionally refresh or open the joinUrl
+                        if (session.joinUrl) window.open(session.joinUrl, '_blank');
+                      } else {
+                        const data = await res.json();
+                        alert(`Check-in failed: ${data.message || 'Unknown error'}`);
+                      }
+                    } catch (e) {
+                      console.error(e);
+                    }
+                  };
+
+                  return (
+                    <div key={session.id} style={{ padding: '1rem', border: '1px solid var(--border-light)', borderRadius: '12px', background: 'var(--bg-main)' }}>
+                      <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '1rem' }}>{session.title}</h4>
+                      <p style={{ margin: '0 0 1rem 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        {startTime.toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} - {endTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      
+                      {checkInOpen ? (
+                        <button onClick={handleCheckIn} className={styles.primaryBtn} style={{ width: '100%', fontSize: '0.85rem', padding: '0.6rem', marginBottom: '0.5rem' }}>
+                          Check In & Join
+                        </button>
+                      ) : now > endTime ? (
+                        <div style={{ padding: '0.5rem', background: 'var(--border-light)', color: 'var(--text-secondary)', borderRadius: '8px', fontSize: '0.85rem', textAlign: 'center', marginBottom: '0.5rem' }}>
+                          Session Ended
+                        </div>
+                      ) : (
+                        <button disabled style={{ width: '100%', fontSize: '0.85rem', padding: '0.6rem', background: 'var(--border-light)', color: 'var(--text-secondary)', border: 'none', borderRadius: '8px', cursor: 'not-allowed', marginBottom: '0.5rem' }}>
+                          Check-in opens 5 mins before
+                        </button>
+                      )}
+
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {session.recordingUrl && (
+                          <a href={session.recordingUrl} target="_blank" rel="noreferrer" className={styles.secondaryBtn} style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', padding: '0.4rem', textDecoration: 'none' }}>
+                            View Recording
+                          </a>
+                        )}
+                        {session.quizId && (
+                          <a href={`/steps/${session.quizId}?isQuiz=true`} className={styles.primaryBtn} style={{ flex: 1, textAlign: 'center', fontSize: '0.75rem', padding: '0.4rem', textDecoration: 'none' }}>
+                            Take Quiz
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           <div className={styles.card}>
             <div className={styles.cardHeader}>
-              <h3 style={{ fontSize: '0.95rem' }}><Icons.Trophy /> Achievements</h3>
+              <h3 style={{ fontSize: '0.95rem' }}><Icons.CertificateRibbon /> Certificates</h3>
             </div>
-            <div className={styles.emptyState}>
-              <div style={{ marginBottom: '0.5rem' }}><Icons.Trophy /></div>
-              <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.2rem 0' }}>Complete your first course</h4>
-              <p style={{ fontSize: '0.75rem' }}>Earn badges and certificates as you progress.</p>
-            </div>
+            {certificates.length === 0 && !user.enrolledPrograms.some(p => p.progress === 100) ? (
+              <div className={styles.emptyState}>
+                <div style={{ marginBottom: '0.5rem' }}><Icons.Trophy /></div>
+                <h4 style={{ fontSize: '0.9rem', margin: '0 0 0.2rem 0' }}>Complete your first course</h4>
+                <p style={{ fontSize: '0.75rem' }}>Earn badges and certificates as you progress.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+                {certificates.map(cert => (
+                  <div key={cert.id} style={{ padding: '1rem', border: '1px solid #05cd99', borderRadius: '8px', background: '#e6faf5' }}>
+                    <h4 style={{ margin: '0 0 0.2rem 0', color: '#04a87d' }}>{cert.enrolment?.batch?.program?.title}</h4>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: '#04a87d' }}>Issued: {new Date(cert.issueDate).toLocaleDateString()}</p>
+                    <a href={cert.pdfUrl} target="_blank" rel="noreferrer" className={styles.primaryBtn} style={{ background: '#05cd99', border: 'none', padding: '0.4rem 0.8rem', fontSize: '0.8rem', textDecoration: 'none', display: 'inline-block' }}>Download PDF</a>
+                  </div>
+                ))}
+
+                {user.enrolledPrograms.filter(p => p.progress === 100).map(prog => (
+                  <div key={prog.enrolmentId} style={{ padding: '1rem', border: '1px solid var(--border-light)', borderRadius: '8px', background: 'var(--bg-main)' }}>
+                    <h4 style={{ margin: '0 0 0.2rem 0' }}>{prog.programTitle}</h4>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>You have completed 100% of this program!</p>
+                    <button onClick={() => requestCertificate(prog.enrolmentId)} className={styles.primaryBtn} style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>Request Certificate</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

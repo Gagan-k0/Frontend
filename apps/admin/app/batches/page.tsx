@@ -222,6 +222,7 @@ export default function BatchesPage() {
                     {activeDropdown === batch.id && (
                       <div className={styles.actionDropdown}>
                         <button className={styles.dropdownItem} onClick={() => openEditModal(batch)}>Edit Schedule</button>
+                        <Link href={`/batches/${batch.id}/sessions`} className={styles.dropdownItem} style={{ textDecoration: 'none' }}>Manage Sessions & Attendance</Link>
                         <button className={`${styles.dropdownItem} ${styles.textDanger}`} onClick={() => handleDeleteBatch(batch.id)}>Delete Batch</button>
                       </div>
                     )}

@@ -26,13 +26,15 @@ export class ProgramsService {
         },
         include: { program: true }
       }) as any;
-      if (!batch.program && program) {
-        batch.program = program;
+      if (!batch!.program && program) {
+        batch!.program = program;
       }
     }
 
+    const batchId = batch!.id;
+
     const existing = await this.prisma.enrolment.findFirst({
-      where: { userId, batchId: batch.id }
+      where: { userId, batchId }
     });
 
     if (existing) return existing;
@@ -40,12 +42,13 @@ export class ProgramsService {
     const enrolment = await this.prisma.enrolment.create({
       data: {
         userId,
-        batchId: batch.id,
+        batchId: batchId,
+        programId: programId,
         status: 'ACTIVE'
       }
     });
 
-    const price = batch.program?.price || 0;
+    const price = batch!.program?.price || 0;
 
     // Create a mock payment for the enrollment
     const payment = await this.prisma.payment.create({
@@ -53,9 +56,8 @@ export class ProgramsService {
         enrolmentId: enrolment.id,
         amount: price,
         currency: 'USD',
-        provider: 'STRIPE',
-        transactionId: 'txn_mock_' + Math.random().toString(36).substr(2, 9),
-        status: 'SUCCESS'
+        stripeSessionId: 'txn_mock_' + Math.random().toString(36).substr(2, 9),
+        status: 'succeeded'
       }
     });
 
@@ -82,6 +84,8 @@ export class ProgramsService {
       description: data.description,
       price: data.price,
       isActive: data.status === 'Active' || data.isActive !== false,
+      hasCertificate: data.hasCertificate || false,
+      certificateTemplate: data.certificateTemplate || null,
     };
     return this.prisma.program.create({ data: programData });
   }
@@ -89,9 +93,11 @@ export class ProgramsService {
   update(id: string, data: any) {
     const programData: any = {};
     if (data.title) programData.title = data.title;
-    if (data.description) programData.description = data.description;
+    if (data.description !== undefined) programData.description = data.description;
     if (data.price !== undefined) programData.price = data.price;
     if (data.status !== undefined) programData.isActive = data.status === 'Active';
+    if (data.hasCertificate !== undefined) programData.hasCertificate = data.hasCertificate;
+    if (data.certificateTemplate !== undefined) programData.certificateTemplate = data.certificateTemplate;
     
     return this.prisma.program.update({
       where: { id },

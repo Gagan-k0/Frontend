@@ -37,19 +37,32 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    // Build basic payload for refresh token (sessionId is added later for access token)
+    const refreshPayload = {
+      sub: user.id,
+    };
+
+    const refreshToken = this.jwtService.sign(refreshPayload, {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: '7d',
+    });
+
+    // Hash the refresh token and store it
+    const tokenHash = await bcrypt.hash(refreshToken, 10);
+
+    // Enforce device limits and store session
+    const sessionId = await this.createDeviceSession(user.id, user.role, tokenHash);
+
     // Build JWT payload with user role and tenant context (enrolled programs)
-    const payload = {
+    const accessPayload = {
       sub: user.id,
       email: user.email,
       role: user.role,
       companyId: user.companyId,
+      sessionId,
     };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: '7d',
-    });
+    const accessToken = this.jwtService.sign(accessPayload, { expiresIn: '15m' });
 
     // Return user data with enrolled programs for tenant separation
     const enrolledPrograms = user.enrolments.map((e) => ({
@@ -123,6 +136,7 @@ export class AuthService {
           data: {
             userId: user.id,
             batchId: batch.id,
+            programId: pId,
             status: 'ACTIVE'
           },
           include: {
@@ -138,25 +152,32 @@ export class AuthService {
           batchId: batch.id,
           batchName: batch.name,
           programId: pId,
-          programTitle: enrolment.batch.program.title,
+          programTitle: enrolment.batch?.program?.title || 'Unknown',
           status: enrolment.status,
           progress: 0,
         });
       }
     }
 
-    const payload = {
+    const refreshPayload = { sub: user.id };
+    const refreshToken = this.jwtService.sign(refreshPayload, {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: '7d',
+    });
+    const tokenHash = await bcrypt.hash(refreshToken, 10);
+
+    // Enforce device limits
+    const sessionId = await this.createDeviceSession(user.id, user.role, tokenHash);
+
+    const accessPayload = {
       sub: user.id,
       email: user.email,
       role: user.role,
       companyId: user.companyId,
+      sessionId,
     };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '1h' });
-    const refreshToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
-      expiresIn: '7d',
-    });
+    const accessToken = this.jwtService.sign(accessPayload, { expiresIn: '15m' });
 
     return {
       access_token: accessToken,
@@ -194,17 +215,29 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const payload = {
+    const refreshPayload = { sub: user.id };
+    const refreshToken = this.jwtService.sign(refreshPayload, {
+      secret: process.env.JWT_REFRESH_SECRET,
+      expiresIn: '7d',
+    });
+    const tokenHash = await bcrypt.hash(refreshToken, 10);
+
+    // Enforce device limits
+    const sessionId = await this.createDeviceSession(user.id, user.role, tokenHash);
+
+    const accessPayload = {
       sub: user.id,
       email: user.email,
       role: user.role,
       companyId: user.companyId,
+      sessionId,
     };
 
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '2h' });
+    const accessToken = this.jwtService.sign(accessPayload, { expiresIn: '15m' });
 
     return {
       access_token: accessToken,
+      refresh_token: refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -228,21 +261,51 @@ export class AuthService {
       });
 
       if (!user) {
-        throw new UnauthorizedException('User not found');
+        throw new UnauthorizedException({ message: 'User not found', error: 'INVALID_CREDENTIALS' });
       }
 
+      const session = await this.checkSession(payload.sessionId);
+
+      // Verify token hash
+      const isValid = await bcrypt.compare(refreshTokenStr, session.token);
+      if (!isValid) {
+        // Reuse detected! Revoke the session
+        await this.prisma.userSession.update({
+          where: { id: session.id },
+          data: { revokedAt: new Date(), revokedReason: 'TOKEN_REUSED' }
+        });
+        throw new UnauthorizedException({ message: 'Session revoked due to token reuse', error: 'SESSION_REVOKED' });
+      }
+
+      // Generate new tokens
       const newPayload = {
         sub: user.id,
         email: user.email,
         role: user.role,
         companyId: user.companyId,
+        sessionId: payload.sessionId,
       };
 
-      const accessToken = this.jwtService.sign(newPayload, { expiresIn: '1h' });
+      const newRefreshToken = this.jwtService.sign(newPayload, {
+        secret: process.env.JWT_REFRESH_SECRET,
+        expiresIn: '7d',
+      });
+      const newHash = await bcrypt.hash(newRefreshToken, 10);
 
-      return { access_token: accessToken };
-    } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      // Rotate hash in db
+      await this.prisma.userSession.update({
+        where: { id: session.id },
+        data: { token: newHash }
+      });
+
+      const accessToken = this.jwtService.sign(newPayload, { expiresIn: '15m' });
+
+      return { access_token: accessToken, refresh_token: newRefreshToken };
+    } catch (e: any) {
+      if (e instanceof UnauthorizedException) {
+        throw e;
+      }
+      throw new UnauthorizedException({ message: 'Invalid or expired refresh token', error: 'TOKEN_EXPIRED' });
     }
   }
 
@@ -256,8 +319,21 @@ export class AuthService {
         enrolments: {
           include: {
             batch: {
-              include: { program: true },
+              include: { 
+                program: {
+                  include: {
+                    steps: {
+                      include: {
+                        lessons: true,
+                        quiz: true,
+                      }
+                    }
+                  }
+                }
+              },
             },
+            lessonProgress: true,
+            attempts: true,
           },
         },
       },
@@ -267,10 +343,39 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
+    const batchIds = user.enrolments.map(e => e.batchId);
+    
+    // Fetch sessions for all batches the user is in
+    const sessions = await this.prisma.session.findMany({
+      where: {
+        batchId: { in: batchIds },
+        endTime: { gt: new Date() } // Only future or ongoing sessions
+      },
+      orderBy: { startTime: 'asc' },
+      take: 5
+    });
+
     const enrolledPrograms = user.enrolments.map((e) => {
-      // Calculate a dummy progress based on enrolment ID to make it dynamic but consistent per enrolment
-      const hash = Array.from(e.id).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const progress = (hash % 100) + 1; // 1 to 100%
+      let totalItems = 0;
+      let completedItems = 0;
+
+      const steps = e.batch?.program?.steps || [];
+      for (const step of steps) {
+        // Count lessons
+        for (const lesson of step.lessons || []) {
+          totalItems++;
+          const lp = e.lessonProgress?.find(p => p.lessonId === lesson.id);
+          if (lp?.viewed) completedItems++;
+        }
+        // Count quiz
+        if (step.quiz) {
+          totalItems++;
+          const attempt = e.attempts?.find(a => a.quizId === step.quiz?.id && a.status === 'PASSED');
+          if (attempt) completedItems++;
+        }
+      }
+
+      const progress = totalItems === 0 ? 0 : Math.round((completedItems / totalItems) * 100);
 
       return {
         enrolmentId: e.id,
@@ -290,6 +395,88 @@ export class AuthService {
       role: user.role,
       companyId: user.companyId,
       enrolledPrograms,
+      upcomingSessions: sessions,
     };
+  }
+
+  /**
+   * Helper: Create a device session and enforce limits
+   */
+  async createDeviceSession(userId: string, role: string, tokenHash: string): Promise<string> {
+    const maxSessions = role === Role.USER ? 1 : 3;
+
+    const sessionId = await this.prisma.$transaction(async (tx) => {
+      // 1. Take advisory lock
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${userId}))`;
+
+      // 2. Find active sessions
+      const activeSessions = await tx.userSession.findMany({
+        where: { userId, revokedAt: null },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      // 3. Revoke excess
+      if (activeSessions.length >= maxSessions) {
+        const toRevoke = activeSessions.slice(0, activeSessions.length - maxSessions + 1);
+        await tx.userSession.updateMany({
+          where: { id: { in: toRevoke.map(s => s.id) } },
+          data: {
+            revokedAt: new Date(),
+            revokedReason: 'NEW_LOGIN'
+          }
+        });
+      }
+
+      // 4. Create new
+      const newSession = await tx.userSession.create({
+        data: {
+          userId,
+          token: tokenHash,
+        }
+      });
+
+      return newSession.id;
+    });
+
+    return sessionId;
+  }
+
+  /**
+   * Check if session is revoked
+   */
+  async checkSession(sessionId: string) {
+    if (!sessionId) {
+      throw new UnauthorizedException({ message: 'Session ID missing', error: 'INVALID_CREDENTIALS' });
+    }
+
+    const session = await this.prisma.userSession.findUnique({
+      where: { id: sessionId },
+    });
+
+    if (!session || session.revokedAt) {
+      throw new UnauthorizedException({ message: 'Session has been revoked', error: 'SESSION_REVOKED' });
+    }
+
+    return session;
+  }
+
+  /**
+   * Logout all sessions
+   */
+  async logoutAll(userId: string) {
+    const res = await this.prisma.userSession.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date(), revokedReason: 'LOGOUT_ALL' }
+    });
+    
+    await this.prisma.logAction({
+      actorId: userId,
+      action: 'LOGOUT_ALL_SESSIONS',
+      entity: 'User',
+      entityId: userId,
+      meta: { count: res.count }
+    });
+
+    return { success: true, count: res.count };
   }
 }

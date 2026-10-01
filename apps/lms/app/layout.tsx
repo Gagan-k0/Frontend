@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import styles from "./layout.module.css";
 import LmsSidebar from "./LmsSidebar";
+import AuthProvider from "./AuthProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -45,7 +46,9 @@ export default function RootLayout({
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{cursor: 'pointer'}}><polyline points="6 9 12 15 18 9"></polyline></svg>
               </div>
             </header>
-            {children}
+            <AuthProvider>
+              {children}
+            </AuthProvider>
           </main>
         </div>
       </body>

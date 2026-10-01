@@ -1,12 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
 
 @Injectable()
 export class BatchesService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(user: any) {
+    const where = user.role === Role.MANAGER ? { managerId: user.sub } : {};
     const batches = await this.prisma.batch.findMany({
+      where,
       include: {
         program: true,
         manager: true,
@@ -23,6 +26,22 @@ export class BatchesService {
       students: batch.enrolments.length,
       status: 'Active',
     }));
+  }
+
+  async findOne(id: string, user: any) {
+    const batch = await this.prisma.batch.findUnique({
+      where: { id },
+      include: {
+        program: true,
+        enrolments: {
+          include: { user: true }
+        }
+      }
+    });
+    if (user.role === Role.MANAGER && batch?.managerId !== user.sub) {
+      throw new ForbiddenException('You can only view your own batches');
+    }
+    return batch;
   }
 
   create(data: any) {

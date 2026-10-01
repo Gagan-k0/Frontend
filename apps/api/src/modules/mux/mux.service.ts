@@ -15,7 +15,7 @@ export class MuxService {
   async createDirectUpload() {
     const upload = await this.mux.video.uploads.create({
       new_asset_settings: {
-        playback_policy: ['public'],
+        playback_policy: ['signed'],
         video_quality: 'basic',
       },
       cors_origin: '*', // Allow uploads from our frontend
@@ -43,6 +43,35 @@ export class MuxService {
     } catch (e) {
       console.error("Error retrieving Mux upload", e);
       return { status: 'error' };
+    }
+  }
+
+  async getSignedPlaybackToken(playbackId: string): Promise<string> {
+    // The Mux SDK v8+ handles token signing differently, or we can use jsonwebtoken directly.
+    // Given the SDK might throw missing SyntaxKind or something if we try to require the wrong file,
+    // we can use standard jsonwebtoken if we prefer, but let's try the SDK first.
+    try {
+      const token = await this.mux.jwt.signPlaybackId(playbackId, {
+        type: 'video',
+        expiration: '2h',
+      });
+      return token;
+    } catch (e: any) {
+      if (e.message && e.message.includes('signPlaybackId is not a function')) {
+        // Fallback for some Mux SDK versions if jwt is not initialized properly
+        const jwt = require('jsonwebtoken');
+        return jwt.sign(
+          { 
+            sub: playbackId, 
+            aud: 'video', 
+            exp: Math.floor(Date.now() / 1000) + (2 * 60 * 60), 
+            kid: process.env.MUX_SIGNING_KEY 
+          }, 
+          Buffer.from(process.env.MUX_SIGNING_SECRET || '', 'base64'),
+          { algorithm: 'RS256' } // Note: Mux uses RS256 with base64 decoded secret
+        );
+      }
+      throw e;
     }
   }
 }

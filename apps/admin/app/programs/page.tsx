@@ -10,6 +10,8 @@ interface Program {
   type: string;
   price: number;
   status: string;
+  hasCertificate: boolean;
+  certificateTemplate: string | null;
 }
 
 export default function ProgramsPage() {
@@ -24,6 +26,8 @@ export default function ProgramsPage() {
   const [type, setType] = useState("Certification");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  const [hasCertificate, setHasCertificate] = useState(false);
+  const [certificateTemplate, setCertificateTemplate] = useState("default_template_v1");
 
   useEffect(() => {
     fetchPrograms();
@@ -53,6 +57,8 @@ export default function ProgramsPage() {
     setType(prog.type || "Certification");
     setPrice(prog.price ? prog.price.toString() : "");
     setDescription(""); // Description not in table but would be fetched ideally
+    setHasCertificate(prog.hasCertificate || false);
+    setCertificateTemplate(prog.certificateTemplate || "default_template_v1");
     setIsModalOpen(true);
     setActiveDropdown(null);
   };
@@ -63,6 +69,8 @@ export default function ProgramsPage() {
     setType("Certification");
     setPrice("");
     setDescription("");
+    setHasCertificate(false);
+    setCertificateTemplate("default_template_v1");
     setIsModalOpen(true);
   };
 
@@ -89,6 +97,8 @@ export default function ProgramsPage() {
       price: parseFloat(price) || 0,
       description,
       status: "Active", // Default status
+      hasCertificate,
+      certificateTemplate: hasCertificate ? certificateTemplate : null,
     };
 
     try {
@@ -231,6 +241,24 @@ export default function ProgramsPage() {
                 <label>Description</label>
                 <textarea rows={4} placeholder="Briefly describe what this program covers..." value={description} onChange={(e) => setDescription(e.target.value)}></textarea>
               </div>
+
+              <div className={styles.formRow} style={{ marginTop: '1rem', borderTop: '1px solid var(--border-light)', paddingTop: '1rem' }}>
+                <div className={styles.formGroup} style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+                  <input type="checkbox" id="hasCertificate" checked={hasCertificate} onChange={(e) => setHasCertificate(e.target.checked)} style={{ width: 'auto' }} />
+                  <label htmlFor="hasCertificate" style={{ margin: 0 }}>Enable Certificates for this Program</label>
+                </div>
+              </div>
+
+              {hasCertificate && (
+                <div className={styles.formGroup}>
+                  <label>Certificate Template</label>
+                  <select value={certificateTemplate} onChange={(e) => setCertificateTemplate(e.target.value)}>
+                    <option value="default_template_v1">Default Modern (V1)</option>
+                    <option value="corporate_template_v1">Corporate Professional (V1)</option>
+                    <option value="creative_template_v1">Creative Flow (V1)</option>
+                  </select>
+                </div>
+              )}
 
               <div className={styles.modalFooter}>
                 <button type="button" className={styles.secondaryBtn} onClick={() => setIsModalOpen(false)}>Cancel</button>

@@ -5,11 +5,24 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // -----------------------------------------------------------------------------
 // ENUMS
 // -----------------------------------------------------------------------------
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum OrderProvider {
+  MOCK
+  STRIPE
+}
 
 enum Role {
   SUPER_ADMIN
@@ -103,15 +116,34 @@ model User {
   companyId String?
   company   Company? @relation(fields: [companyId], references: [id])
 
-  managedBatches Batch[]     @relation("ManagerBatches")
+  managedBatches Batch[]        @relation("ManagerBatches")
   enrolments     Enrolment[]
   messagesSent   Message[]
+  sessions       UserSession[]
+  notifications  Notification[]
 
   // Soft Delete for GDPR
-  deletedAt    DateTime?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  Notification Notification[]
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model UserSession {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  token      String   @unique // Store the JWT or a session hash
+  ipAddress  String?
+  userAgent  String?
+  lastActive DateTime @default(now())
+
+  revokedAt     DateTime?
+  revokedReason String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, revokedAt])
 }
 
 // -----------------------------------------------------------------------------
@@ -126,11 +158,15 @@ model Program {
   price       Float
   isActive    Boolean @default(true)
 
+  hasCertificate      Boolean @default(false)
+  certificateTemplate String?
+
   steps   Step[]
   batches Batch[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Enrolment Enrolment[]
 }
 
 model Step {
@@ -231,6 +267,9 @@ model Enrolment {
   batchId String
   batch   Batch  @relation(fields: [batchId], references: [id])
 
+  programId String
+  program   Program @relation(fields: [programId], references: [id])
+
   status EnrolmentStatus @default(PENDING_PAYMENT)
 
   agreement Agreement?
@@ -244,6 +283,7 @@ model Enrolment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([userId, programId])
   @@unique([userId, batchId])
 }
 
@@ -311,6 +351,8 @@ model Session {
   endTime       DateTime
   zoomMeetingId String?
   joinUrl       String?
+  recordingUrl  String?
+  quizId        String?
 
   attendancePulled Boolean      @default(false)
   attendances      Attendance[]
@@ -356,8 +398,13 @@ model Certificate {
   enrolmentId String    @unique
   enrolment   Enrolment @relation(fields: [enrolmentId], references: [id], onDelete: Cascade)
 
-  pdfUrl   String // AWS S3 permanent URL for cert
-  issuedAt DateTime @default(now())
+  certificateNumber String            @unique
+  status            CertificateStatus @default(PENDING)
+  pdfUrl            String? // AWS S3 permanent URL for cert
+  issuedAt          DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // -----------------------------------------------------------------------------
@@ -451,14 +498,15 @@ model Notification {
 }
 
 model AuditLog {
-  id           String  @id @default(uuid())
-  actorId      String? // Can be null if system action
-  action       String
-  targetEntity String
-  targetId     String
-  details      Json?
+  id        String   @id @default(uuid())
+  actorId   String?  // Can be null if system action
+  action    String
+  entity    String
+  entityId  String
+  meta      Json?
+  ip        String?
 
-  timestamp DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 model Lead {
@@ -471,4 +519,32 @@ model Lead {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum CertificateStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REVOKED
+}
+
+// -----------------------------------------------------------------------------
+// ORDERS & PAYMENTS
+// -----------------------------------------------------------------------------
+
+model Order {
+  id          String        @id @default(uuid())
+  userId      String
+  programId   String
+  amount      Float
+  currency    String        @default("usd")
+  status      OrderStatus   @default(PENDING)
+  provider    OrderProvider @default(MOCK)
+  providerRef String?
+  couponId    String?
+
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+
+  @@index([userId, status])
 }
