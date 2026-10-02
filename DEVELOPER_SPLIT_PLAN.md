@@ -1,5 +1,5 @@
 # WhatBoutMe LMS — Complete Two-Developer Implementation Plan
-**Document Version:** 2.2.0
+**Document Version:** 2.3.0
 **Date:** October 2, 2026
 **Sources of Truth:**
 - Client PDF: *"WhatBoutMe LMS: Development Plan"* (Sep 28, 2026) — Business Source of Truth
@@ -12,7 +12,7 @@
 
 ### 1.1 Team Division of Labour
 - **Developer 1 (Lead / User):** Sole owner of the canonical database schema, all Prisma migrations, core LMS domain logic, authentication, authorization, agreement gates, session/booking business rules, attendance scoring rules, certificate eligibility rules, payment domain rules, and data reporting.
-- **Developer 2 (Infrastructure & Integration Partner):** Sole owner of Cloudinary media engineering, private S3/R2 object storage, BullMQ worker infrastructure, Redis TCP connection, Resend email infrastructure, Zoom provider, Google Meet provider, Microsoft Graph / Outlook integration, Sentry observability, Docker DevOps, Socket.IO realtime transport, and Stripe webhook infrastructure.
+- **Developer 2 (Infrastructure & Integration Partner):** Sole owner of Cloudinary media engineering, private object storage integration (Cloudinary for development), BullMQ worker infrastructure, Redis TCP connection, Resend email infrastructure, Zoom provider, Google Meet provider, Microsoft Graph / Outlook integration, Sentry observability, Docker DevOps, Socket.IO realtime transport, and Stripe webhook infrastructure.
 
 ### 1.2 Absolute Boundary Constraints
 1. **Prisma & Database Isolation:** Developer 1 is the **ONLY** developer permitted to run `prisma migrate dev`, `prisma migrate deploy`, or edit `schema.prisma`. Developer 2 must never generate or commit database migrations.
@@ -21,6 +21,7 @@
 4. **BullMQ Protocol:** BullMQ queues and workers **MUST** connect to Redis via TCP/RESP (using local Docker Redis 7 on `localhost:6379` in development). Upstash Redis REST API is strictly prohibited for BullMQ.
 5. **Contract-First Development:** Developers must agree on all TypeScript interfaces (Shared Contracts) before starting parallel tasks. Developer 1 codes against interfaces; Developer 2 implements providers.
 6. **No Prototype Preservation:** Existing prototype code in `apps/api` is treated as evidence of what is missing or broken. Legacy artifacts (`packages/database/`, `modules/mux/`, order mock tables, auto-enrolment hacks) will be purged.
+7. **Development Object Storage Strategy:** Development uses Cloudinary (`CloudinaryObjectStorageProvider`) for all private files (PDFs, audio, agreements, certificates) to eliminate cloud storage provisioning costs during development. All domain logic and worker services interact exclusively with the provider-neutral `IObjectStorageProvider` abstraction. Developer 1 writes code against `IObjectStorageProvider` with zero provider coupling, while Developer 2 owns the storage provider implementation and Cloudinary credentials. No AWS/R2 credentials or cloud storage accounts are required for local development.
 
 ### 1.3 Role Terminology & Batch Scoping
 - The canonical Prisma schema enforces four roles: `SUPER_ADMIN`, `ADMIN`, `MANAGER`, and `USER`.
@@ -38,7 +39,7 @@
 | **Resend** | Defines business events triggering email; passes typed template data to queue | Integrates Resend SDK, API keys, delivery logging, retry logic, bounce tracking | `IEmailService`, `EmailJobPayload<T>` |
 | **React Email** | Defines required content fields and variables for each template | Implements and compiles React Email JSX templates into responsive HTML | `EmailTemplate` enum, template props schemas |
 | **Cloudinary** | Consumes signed playback URLs; authorizes learner access to video steps | **100% Owner:** Account setup, SDK, credentials, authenticated delivery, signed URLs (5m TTL), domain restrictions, static text watermark overlay, webhooks | `IMediaProvider`, `PlaybackOptions`, `UploadSignatureOptions` |
-| **S3 / R2 (Private Storage)** | Authorizes learner access to private files (PDFs, audio, agreements, certs) | Configures `@aws-sdk/client-s3`, generates short-lived pre-signed GET/PUT URLs | `IObjectStorageProvider`, pre-signed URL generator |
+| **Private Object Storage (Cloudinary in Dev)** | Authorizes learner access to private files (PDFs, audio, agreements, certs) via `IObjectStorageProvider` | Implements `CloudinaryObjectStorageProvider` for development; handles authenticated uploads, short-lived signed URLs, and worker buffer persistence | `IObjectStorageProvider`, pre-signed URL & upload generator |
 | **Zoom** | Owns session/booking business rules, capacity, attendance compliance logic | Owns Zoom S2S OAuth, meeting CRUD, cloud recording fetch, participant report ingestion, webhook HMAC verification | `IMeetingProvider`, `ParticipantAttendanceRecord` |
 | **Google Meet** | Consumes generic meeting interface; provider-neutral session records | Full provider implementation: Google Workspace service account, Calendar/Meet API space create/update/cancel, Google Drive recording fetch (with manual URL fallback), Admin Reports API attendance ingestion (with manual trainer marking fallback) | `IMeetingProvider`, `MeetingProviderFactory` |
 | **Microsoft Graph / Outlook** | Defines booking scheduling windows, cancellation rules, trainer timezones, calls `getBusySlots()` for clash prevention | Azure AD app auth, MS Graph client, free/busy lookup (`getSchedule`), calendar event CRUD with Meet/Zoom links | `ICalendarProvider`, `CalendarEventDto`, `TimeSlot` |
@@ -53,7 +54,7 @@
 | **Permissions / RBAC** | `permissions.config.ts`, `ROLE_PERMISSIONS` matrix, `PermissionsGuard`, `@RequirePermission()`, `BatchAccessGuard` (for `Role.MANAGER` / Trainers) | Adheres to guards on all infrastructure and ingestion routes | Permission keys enum, `BatchAccessGuard` |
 | **Session / Booking Business** | Booking quotas, lead time rules (configurable default: 12h), reschedule/cancellation cutoffs (configurable default: 24h), timezone conversion, Outlook clash prevention via `getBusySlots()` | Injects external join links (Zoom/Meet) and creates Outlook calendar events | `CreateMeetingDto`, `CalendarEventDto` |
 | **Attendance** | Attendance state machine, configurable threshold rule (default: 80%, client example: 75%), participant email reconciliation, duration aggregation across reconnects, unmatched attendee review queue, manual overrides with mandatory `correctionReason` | Ingests Zoom/Meet participant attendance reports via BullMQ worker | `AttendanceImportJobPayload`, `ParticipantAttendanceRecord` |
-| **Certificates** | Eligibility rules (11 steps + 11 quizzes + 50-question exam + oral pass + closing call + attendance threshold), corporate participation certificate track, approval workflow, public verification endpoint with LinkedIn "Add to Profile" parameters | Background worker rendering PDF (`pdf-lib`), stores in S3/R2, returns signed download link | `CertificateGenJobPayload` |
+| **Certificates** | Eligibility rules (11 steps + 11 quizzes + 50-question exam + oral pass + closing call + attendance threshold), corporate participation certificate track, approval workflow, public verification endpoint with LinkedIn "Add to Profile" parameters | Background worker rendering PDF (`pdf-lib`), stores via `IObjectStorageProvider`, returns signed download link | `CertificateGenJobPayload` |
 | **Chat** | Conversation state machine (`OPEN` -> `ASSIGNED` -> `RESOLVED`), batch-scoped routing, message validation | Realtime transport, typing indicators, read receipts, WebSocket room joins | `REALTIME_EVENTS`, `SendMessageDto` |
 | **Notifications** | Determines notification triggers, recipient targeting, in-app notification records | Dispatches emails via Resend and real-time alerts via Socket.IO | `NotificationJobPayload` |
 | **Reporting** | Complex analytics queries: attendance compliance, step funnel drop-offs, assessment scores, CSV export | Offloads large export generation to worker (if async) | `ReportQueryDto`, CSV stream contracts |
@@ -181,10 +182,14 @@
 - [ ] **D2-011:** Implement shared `IMediaProvider` interface using Cloudinary.
 - [ ] **D2-012:** Author automated test suite verifying signed URL generation, expiration parameter enforcement, and signature validity without leaking API secrets.
 
-### B. Private Object Storage (S3 / R2)
-- [ ] **D2-013:** Configure `@aws-sdk/client-s3` for private bucket (PDFs, audio, signed agreements, certificates).
-- [ ] **D2-014:** Implement `IObjectStorageProvider.getPresignedGetUrl(key, expiresInSeconds)` with short TTL (60 seconds).
+### B. Private Object Storage (Development: Cloudinary)
+- [ ] **D2-013: Development Object Storage Architecture**
+  Implement `CloudinaryObjectStorageProvider` for development adhering to `IObjectStorageProvider`, using authenticated uploads (`type: 'authenticated'`, `resource_type: 'raw' | 'image' | 'video'`). Configure `STORAGE_PROVIDER=cloudinary` for local development. Ensure zero AWS/R2 account or paid cloud storage requirements during development.
+- [ ] **D2-014: Signed Delivery URLs with Resource-Specific TTLs**
+  Implement `IObjectStorageProvider.getPresignedGetUrl(key, expiresInSeconds)`. Enforce appropriate TTL defaults: 60 seconds for downloadable documents (PDFs, worksheets, signed agreements, certificates), and 300 seconds (5 minutes) for streaming audio lessons to support audio seek/buffer range requests without premature expiration.
 - [ ] **D2-015:** Implement `IObjectStorageProvider.getPresignedPutUrl(key, contentType, expiresInSeconds)` for authorized admin uploads.
+- [ ] **D2-015b: In-Memory Worker Buffer Upload**
+  Implement `IObjectStorageProvider.uploadBuffer(key, buffer, contentType)` enabling backend services and workers (e.g., certificate generation) to directly persist in-memory rendered files without circular HTTP roundtrips.
 - [ ] **D2-016:** Implement secure streaming fallback proxy with security headers (`Content-Disposition: inline`, `X-Content-Type-Options: nosniff`).
 
 ### C. BullMQ / Redis Infrastructure
@@ -248,7 +253,7 @@
 
 ### K. Certificate PDF Generation Infrastructure (Phase 5)
 - [ ] **D2-051:** Implement `CertificateGenProcessor` in BullMQ using `pdf-lib` to render certificate visual template, recipient name, course name, date, and QR code.
-- [ ] **D2-052:** Upload rendered certificate PDF to private object storage (`certificates/${certificateCode}.pdf`) and return object key to certificate service.
+- [ ] **D2-052:** Upload rendered certificate PDF to private object storage via `IObjectStorageProvider.uploadBuffer()` (`certificates/${certificateCode}.pdf`) and return object key to certificate service.
 
 ### L. Stripe Infrastructure (Phase 7 — Deferred)
 - [ ] **D2-053:** Install `stripe` SDK and initialize client with API secrets.
@@ -361,6 +366,7 @@ export interface IMediaProvider {
 export interface IObjectStorageProvider {
   getPresignedGetUrl(key: string, expiresInSeconds?: number): Promise<string>;
   getPresignedPutUrl(key: string, contentType: string, expiresInSeconds?: number): Promise<string>;
+  uploadBuffer(key: string, buffer: Buffer, contentType: string): Promise<string>;
   deleteObject(key: string): Promise<void>;
   objectExists(key: string): Promise<boolean>;
 }
@@ -576,10 +582,7 @@ If Developer 2 requires a database change (e.g., adding `StripeWebhookEvent`, ad
 | `CLOUDINARY_CLOUD_NAME` | **Dev 2** | Cloudinary account identifier | All |
 | `CLOUDINARY_API_KEY` | **Dev 2** | Cloudinary API key | All |
 | `CLOUDINARY_API_SECRET` | **Dev 2** | Cloudinary API secret | All |
-| `AWS_S3_BUCKET` | **Dev 2** | Private object storage bucket name for PDFs, audio, certs | All |
-| `AWS_S3_ACCESS_KEY` | **Dev 2** | S3 / Cloudflare R2 access key | All |
-| `AWS_S3_SECRET_KEY` | **Dev 2** | S3 / Cloudflare R2 secret key | All |
-| `AWS_S3_REGION` | **Dev 2** | S3 bucket region or R2 endpoint | All |
+| `STORAGE_PROVIDER` | **Dev 2** | Object storage provider flag (`cloudinary` for development) | Dev / Staging |
 | `REDIS_URL` | **Dev 2** | Redis TCP connection string (`redis://localhost:6379`) | Dev / Staging |
 | `RESEND_API_KEY` | **Dev 2** | Resend transactional email API key | All |
 | `ZOOM_ACCOUNT_ID` | **Dev 2** | Zoom Server-to-Server OAuth Account ID | All |
@@ -641,8 +644,8 @@ If Developer 2 requires a database change (e.g., adding `StripeWebhookEvent`, ad
   - Implement `CloudinaryMediaProvider` with authenticated video uploads.
   - Implement signed playback URL generation with short TTL and static server-side text overlay watermark.
   - Configure strict referral domain restrictions.
-  - Configure `@aws-sdk/client-s3` for private object storage (PDFs, audio, signed agreements).
-  - Implement pre-signed GET URL generator for private learning assets.
+  - Implement `CloudinaryObjectStorageProvider` for private object storage (PDFs, audio, signed agreements) in development adhering to `IObjectStorageProvider`.
+  - Implement pre-signed GET URL generator with resource-specific TTLs (60s docs, 300s audio) and in-memory buffer upload.
   - Build React Email templates for LMS lifecycle (`EnrolmentConfirmedEmail`, `AgreementSignedConfirmationEmail`, etc.).
 
 ### Phase 4 — Sessions, Bookings & External Meeting Integrations
@@ -670,7 +673,7 @@ If Developer 2 requires a database change (e.g., adding `StripeWebhookEvent`, ad
 - **Developer 2:**
   - Implement participant report ingestion worker for Zoom and Google Meet in BullMQ.
   - Implement PDF certificate generation worker using `pdf-lib` in BullMQ (rendering recipient, course, issue date, QR code, and accredited CPD hours).
-  - Upload generated certificate PDF to private object storage.
+  - Upload generated certificate PDF to private object storage via `IObjectStorageProvider.uploadBuffer()`.
   - Deliver signed certificate download URLs.
 
 ### Phase 6 — Realtime Communication & Notifications (Deferred)
@@ -716,7 +719,7 @@ If Developer 2 requires a database change (e.g., adding `StripeWebhookEvent`, ad
   4. 50-question final exam enforces timed duration, question pool shuffling, and cooldown retries.
   5. Video playback URLs are signed with 5-minute expiry and include static server-side text overlay watermark with learner identity.
   6. Video streaming rejects unauthorized domains (hotlinking prevention).
-  7. Private PDFs and audio files are served solely via short-lived pre-signed URLs with view-only vs download scoping.
+  7. Private PDFs and audio files are served solely via short-lived pre-signed URLs with view-only vs download scoping (backed by Cloudinary authenticated delivery in development).
   8. Quiz attempts enforce retry counts and cooldown timers.
 
 ### Checkpoint 3: Live Sessions, Calendar & Providers
@@ -737,7 +740,7 @@ If Developer 2 requires a database change (e.g., adding `StripeWebhookEvent`, ad
   3. Manual attendance override mandates and records `correctionReason`.
   4. Professional Certificate eligibility engine requires: 11 steps + 11 quizzes + 50-question exam + oral pass + closing call + configurable attendance threshold.
   5. Corporate Participation Certificate track issues attendance-only certificates bypassing exam/quiz/closing-call criteria.
-  6. Approved certificate triggers PDF generation worker, stores PDF in S3 with accredited CPD hours, and public URL `GET /api/certificates/verify/:code` validates authenticity and returns pre-formatted LinkedIn "Add to Profile" URL parameters.
+  6. Approved certificate triggers PDF generation worker, stores PDF in private storage via `IObjectStorageProvider` with accredited CPD hours, and public URL `GET /api/certificates/verify/:code` validates authenticity and returns pre-formatted LinkedIn "Add to Profile" URL parameters.
 
 ---
 
@@ -771,7 +774,7 @@ If Developer 2 requires a database change (e.g., adding `StripeWebhookEvent`, ad
 3. Cloudinary static server-side text overlay watermark transformation and thumbnail generator.
 4. Cloudinary client direct upload signature generator (`POST /media/upload-signature`).
 5. Cloudinary webhook receiver with HMAC signature verification.
-6. `@aws-sdk/client-s3` integration and pre-signed GET/PUT URL generators (view-only PDFs, worksheets, audio).
+6. Object storage integration: `CloudinaryObjectStorageProvider` adhering to `IObjectStorageProvider`, with pre-signed GET/PUT/buffer upload generators (view-only PDFs, worksheets, audio).
 7. Docker Redis 7 TCP setup in `docker-compose.yml`.
 8. BullMQ configuration via Redis TCP and queue definitions.
 9. Standalone background worker process (`apps/api/src/worker.ts`).
@@ -795,7 +798,7 @@ If Developer 2 requires a database change (e.g., adding `StripeWebhookEvent`, ad
 4. **Mux Video:** Mux is officially rejected and must be completely removed (`@mux/mux-node` and `modules/mux`).
 5. **LinkedIn / Social Login:** The client PDF does not require social login; do not add OAuth social login.
 6. **Upstash REST for BullMQ:** BullMQ must never connect via Upstash HTTP/REST; it strictly requires Redis TCP/RESP.
-7. **Premature AWS Cloud Provisioning:** Do not create live AWS RDS or ECS resources during local dev.
+7. **Premature AWS Cloud Provisioning:** Do not create live AWS RDS or ECS resources during local dev. Development uses Neon, Docker Redis, and Cloudinary for all media/storage; no cloud storage accounts are required.
 8. **Frontend Code:** Backend developers must not modify frontend packages or UI components.
 
 ---
@@ -822,8 +825,8 @@ DEVELOPER 1 (Lead / Domain)                       DEVELOPER 2 (Infra / Integrati
                            [ CHECKPOINT 1: Auth & Worker ]
 
 5. Implement LMS progression,           │          4. Implement Cloudinary signed URLs
-   quizzes, 50-q exam, agreement gate ──┼────────>    & S3/R2 pre-signed storage
-   & Content Studio authoring/preview   │
+   quizzes, 50-q exam, agreement gate ──┼────────>    & Cloudinary object storage
+   & Content Studio authoring/preview   │             (IObjectStorageProvider)
                                         ▼
                          [ CHECKPOINT 2: LMS & Media Infra ]
 
