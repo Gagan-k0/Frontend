@@ -10,7 +10,6 @@ const lanAddresses = Object.values(networkInterfaces())
   .map((address) => address!.address);
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   allowedDevOrigins: lanAddresses,
   // the dev badge floats over the bottom tab bar and swallows taps on Home
   devIndicators: false,
