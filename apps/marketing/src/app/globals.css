@@ -1,0 +1,219 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-display: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* whatboutme palette */
+  --color-cream: #fffbf3;
+  --color-cream-deep: #fbeed2;
+  --color-sand: #f3eee6;
+  --color-ink: #14110f;
+  --color-ink-soft: #4a443d;
+  --color-gold: #efa944;
+  --color-gold-deep: #a9670f;
+  --color-line: rgba(20, 17, 15, 0.1);
+}
+
+:root {
+  --radius: 0.875rem;
+
+  --background: #fffbf3;
+  --foreground: #14110f;
+  --card: #ffffff;
+  --card-foreground: #14110f;
+  --popover: #ffffff;
+  --popover-foreground: #14110f;
+  --primary: #14110f;
+  --primary-foreground: #fffbf3;
+  --secondary: #f3eee6;
+  --secondary-foreground: #14110f;
+  --muted: #f3eee6;
+  --muted-foreground: #4a443d;
+  --accent: #efa944;
+  --accent-foreground: #14110f;
+  --destructive: #c2410c;
+  --border: rgba(20, 17, 15, 0.1);
+  --input: rgba(20, 17, 15, 0.14);
+  --ring: rgba(239, 169, 68, 0.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: auto;
+    scrollbar-gutter: stable;
+  }
+  /* Phones: the whole interface one step smaller. Sizes and spacing are in
+     rem, so this shrinks text, buttons, cards and gaps together and keeps
+     their proportions (16px -> 15px base). */
+  @media (max-width: 639px) {
+    html {
+      font-size: 93.75%;
+    }
+  }
+  /* anchor targets stop short of the floating nav */
+  section[id] {
+    scroll-margin-top: 1.5rem;
+  }
+  body {
+    @apply bg-cream text-ink font-sans antialiased;
+    overflow-x: clip;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  ::selection {
+    background: #efa944;
+    color: #14110f;
+  }
+  :focus-visible {
+    outline: 2px solid #a9670f;
+    outline-offset: 3px;
+  }
+}
+
+/* Phones: a row of cards swiped left and right instead of a tall stack.
+   Cards snap into place and the next one peeks in from the edge, which is the
+   cue that the row scrolls. Declared with @utility so breakpoint variants
+   work: "max-sm:swipe-row" swipes on phones and leaves larger screens to the
+   element's own layout classes. */
+@utility swipe-row {
+  display: flex;
+  gap: 0.875rem;
+  margin-inline: -1.25rem;
+  padding-inline: 1.25rem;
+  padding-bottom: 0.5rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 1.25rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  & > * {
+    flex: 0 0 82%;
+    scroll-snap-align: start;
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer utilities {
+  /* Faint square grid behind the hero */
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(20, 17, 15, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20, 17, 15, 0.045) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent);
+    mask-image: linear-gradient(to bottom, black 55%, transparent);
+  }
+
+  /* Letter-spaced small caps label used throughout the brochure */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+}
+
+/* Hero entrance. Pure CSS so it plays as soon as the page paints, with or
+   without scripts. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+}
+
+.rise {
+  animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise {
+    animation: none;
+  }
+}
+
+/* Logo marquee: two identical rows, shifted by one row width */
+@keyframes marquee-x {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.marquee-track {
+  animation: marquee-x 45s linear infinite;
+  will-change: transform;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .marquee-track {
+    animation: none;
+  }
+  /* no animation, so the row scrolls by hand and the copy is dropped */
+  .marquee {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .marquee-track > [aria-hidden="true"] {
+    display: none;
+  }
+}

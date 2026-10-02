@@ -9,6 +9,7 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
+!.env.example
 
 # Testing
 coverage
@@ -25,16 +26,25 @@ out/
 build
 dist
 
-# Debug
+# Debug & Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
+*.log
+dev.log
+dev.out.log
+server.log
 
 # Misc
 .DS_Store
 *.pem
 *.db
 *.db-journal
+*.tsbuildinfo
+WhatBoutMe-backend/
+baton/
+.z-ai-config
 
 # >>> baton (generated coordination + KB files — managed block, do not edit)
 **/.baton/*
