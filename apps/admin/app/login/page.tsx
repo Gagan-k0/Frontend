@@ -65,9 +65,9 @@ export default function AdminLogin() {
           </div>
 
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
-            <button type="button" onClick={() => { setEmail('super@whatboutme.com'); setPassword('Learner@2026'); }} style={{ flex: 1, padding: '5px', fontSize: '11px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: 'black' }}>Super Admin</button>
-            <button type="button" onClick={() => { setEmail('admin@whatboutme.com'); setPassword('Learner@2026'); }} style={{ flex: 1, padding: '5px', fontSize: '11px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: 'black' }}>Admin</button>
-            <button type="button" onClick={() => { setEmail('manager@whatboutme.com'); setPassword('Learner@2026'); }} style={{ flex: 1, padding: '5px', fontSize: '11px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: 'black' }}>Manager</button>
+            <button type="button" onClick={() => { setEmail(process.env.NEXT_PUBLIC_DEMO_SUPER_EMAIL || ''); setPassword(process.env.NEXT_PUBLIC_DEMO_PASSWORD || ''); }} style={{ flex: 1, padding: '5px', fontSize: '11px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: 'black' }}>Super Admin</button>
+            <button type="button" onClick={() => { setEmail(process.env.NEXT_PUBLIC_DEMO_ADMIN_EMAIL || ''); setPassword(process.env.NEXT_PUBLIC_DEMO_PASSWORD || ''); }} style={{ flex: 1, padding: '5px', fontSize: '11px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: 'black' }}>Admin</button>
+            <button type="button" onClick={() => { setEmail(process.env.NEXT_PUBLIC_DEMO_MANAGER_EMAIL || ''); setPassword(process.env.NEXT_PUBLIC_DEMO_PASSWORD || ''); }} style={{ flex: 1, padding: '5px', fontSize: '11px', background: '#f0f0f0', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer', color: 'black' }}>Manager</button>
           </div>
           
           <button type="submit" className={styles.loginBtn} disabled={loading}>
