@@ -1,35 +1,32 @@
-"use client";
-
-import { motion } from "framer-motion";
 import type { ReactNode } from "react";
+import Reveal from "./Reveal";
 
 type SectionHeadingProps = {
-  index: string;
-  label: string;
-  accent?: ReactNode;
+  eyebrow?: string;
+  title: ReactNode;
+  intro?: ReactNode;
+  center?: boolean;
 };
 
 export default function SectionHeading({
-  index,
-  label,
-  accent,
+  title,
+  intro,
+  center = false,
 }: SectionHeadingProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className="mb-14 flex items-center gap-4 md:mb-20"
+    <Reveal
+      className={`mb-6 sm:mb-12 md:mb-14 ${center ? "mx-auto max-w-2xl text-center" : ""}`}
     >
-      <span className="font-mono text-xs tracking-[0.3em] text-mint">
-        {index}
-      </span>
-      <span className="h-px flex-1 bg-paper/12" />
-      <span className="font-mono text-xs uppercase tracking-[0.3em] text-paper/55">
-        {label}
-        {accent}
-      </span>
-    </motion.div>
+      <h2 className="max-w-3xl text-balance text-2xl font-bold leading-[1.12] tracking-tight text-ink sm:text-3xl md:text-[2.75rem]">
+        {title}
+      </h2>
+      {intro && (
+        <p
+          className={`mt-3 max-w-2xl text-sm leading-relaxed text-ink-soft sm:mt-5 sm:text-base md:text-lg ${center ? "mx-auto" : ""}`}
+        >
+          {intro}
+        </p>
+      )}
+    </Reveal>
   );
 }

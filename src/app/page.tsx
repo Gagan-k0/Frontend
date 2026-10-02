@@ -1,67 +1,33 @@
-"use client";
-
-import { useCallback, useEffect, useState } from "react";
-import { AnimatePresence } from "framer-motion";
 import SmoothScroll from "@/components/site/SmoothScroll";
-import Cursor from "@/components/site/Cursor";
-import Preloader from "@/components/site/Preloader";
 import Nav from "@/components/site/Nav";
 import Hero from "@/components/site/Hero";
-import Marquee from "@/components/site/Marquee";
-import Manifesto from "@/components/site/Manifesto";
-import Services from "@/components/site/Services";
-import Work from "@/components/site/Work";
-import Stats from "@/components/site/Stats";
-import CTA from "@/components/site/CTA";
+import PromoBanner from "@/components/site/PromoBanner";
+import Offerings from "@/components/site/Offerings";
+import Programme from "@/components/site/Programme";
+import AboutTeaser from "@/components/site/AboutTeaser";
+import LivedIt from "@/components/site/LivedIt";
+import LogoStrip from "@/components/site/LogoStrip";
+import Testimonials from "@/components/site/Testimonials";
+import Faq from "@/components/site/Faq";
 import Footer from "@/components/site/Footer";
-import { lenisRef } from "@/lib/scroll";
+import { getSiteContent } from "@/lib/siteContent";
 
-export default function Home() {
-  const [loaded, setLoaded] = useState(false);
-
-  const handleReveal = useCallback(() => {
-    setLoaded(true);
-    lenisRef.current?.start();
-  }, []);
-
-  // lock page scroll while the preloader is on stage
-  useEffect(() => {
-    if (!loaded) {
-      lenisRef.current?.stop();
-      document.body.style.overflow = "hidden";
-    } else {
-      lenisRef.current?.start();
-      document.body.style.overflow = "";
-    }
-  }, [loaded]);
+export default async function Home() {
+  const content = await getSiteContent();
 
   return (
-    <main className="relative min-h-screen bg-ink text-paper">
+    <main className="relative min-h-screen bg-cream text-ink">
       <SmoothScroll />
-
-      {/* film grain over everything */}
-      <div
-        aria-hidden
-        className="noise pointer-events-none fixed inset-0 z-[95] opacity-[0.05]"
-      />
-
-      <Cursor />
-
-      <AnimatePresence>
-        {!loaded && (
-          <Preloader key="preloader" onReveal={handleReveal} />
-        )}
-      </AnimatePresence>
-
       <Nav />
-
-      <Hero started={loaded} />
-      <Marquee />
-      <Manifesto />
-      <Services />
-      <Work />
-      <Stats />
-      <CTA />
+      <Hero content={content.hero} />
+      <PromoBanner promo={content.promo} />
+      <LogoStrip />
+      <Offerings />
+      <Programme />
+      <LivedIt />
+      <AboutTeaser image={content.about.image} />
+      <Testimonials testimonials={content.testimonials} />
+      <Faq faqs={content.faqs} />
       <Footer />
     </main>
   );

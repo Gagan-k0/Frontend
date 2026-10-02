@@ -1,142 +1,116 @@
-"use client";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import Logo from "./Logo";
+import FooterPortalLink from "./FooterPortalLink";
+import { CONTACT, DISCLAIMER, ENQUIRE_HREF, SOCIALS } from "@/lib/content";
+import { getSiteContent } from "@/lib/siteContent";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { ArrowUp, Github, Twitter, Instagram, Dribbble } from "lucide-react";
-import Magnetic from "./Magnetic";
-import { scrollToTarget } from "@/lib/scroll";
-
-const SOCIALS = [
-  { icon: Github, label: "GitHub" },
-  { icon: Twitter, label: "Twitter" },
-  { icon: Instagram, label: "Instagram" },
-  { icon: Dribbble, label: "Dribbble" },
+const LINKS = [
+  { label: "Courses", href: "/courses" },
+  { label: "About", href: "/about" },
+  { label: "Certification", href: "/#certification" },
+  { label: "FAQ", href: "/#faq" },
+  { label: "API Endpoints", href: "/api/backend", external: true },
 ];
 
-const SITEMAP = [
-  { label: "Manifesto", href: "#manifesto" },
-  { label: "Services", href: "#services" },
-  { label: "Work", href: "#work" },
-  { label: "Contact", href: "#contact" },
-];
+const LINK = "text-ink-soft transition-colors hover:text-ink";
 
-function LocalTime() {
-  const [time, setTime] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fmt = new Intl.DateTimeFormat("en-GB", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    });
-    const update = () => setTime(fmt.format(new Date()));
-    update();
-    const id = window.setInterval(update, 1000);
-    return () => window.clearInterval(id);
-  }, []);
+export default async function Footer() {
+  const { contact } = await getSiteContent();
 
   return (
-    <span className="tabular-nums">{time ?? "00:00:00"}</span>
-  );
-}
-
-export default function Footer() {
-  return (
-    <footer className="relative mt-auto overflow-hidden border-t border-paper/10">
-      <div className="mx-auto max-w-[1400px] px-6 pb-10 pt-16 md:px-10 md:pt-20">
-        {/* top grid */}
-        <div className="grid gap-12 md:grid-cols-12">
-          <div className="md:col-span-5">
-            <div className="flex items-baseline gap-1">
-              <span className="font-display text-2xl font-extrabold tracking-tight text-paper">
-                AURORA
-              </span>
-              <span className="font-mono text-[10px] text-mint">®</span>
-            </div>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-paper/55">
-              An immersive digital studio crafting experiences people feel —
-              not just use. Distributed everywhere, obsessed with craft.
-            </p>
-            <ul className="mt-6 flex gap-3">
-              {SOCIALS.map(({ icon: Icon, label }) => (
-                <li key={label}>
-                  <Magnetic strength={0.4}>
-                    <a
-                      href="#top"
-                      onClick={(e) => e.preventDefault()}
-                      aria-label={label}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-paper/15 text-paper/60 transition-all duration-300 hover:border-mint hover:bg-mint hover:text-ink"
-                    >
-                      <Icon className="h-4 w-4" />
-                    </a>
-                  </Magnetic>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="md:col-span-3">
-            <h4 className="mb-5 font-mono text-[10px] uppercase tracking-[0.3em] text-paper/40">
-              Sitemap
-            </h4>
-            <ul className="space-y-3">
-              {SITEMAP.map((item) => (
-                <li key={item.href}>
-                  <button
-                    onClick={() => scrollToTarget(item.href)}
-                    className="group flex items-center gap-2 text-sm text-paper/65 transition-colors hover:text-mint"
-                  >
-                    <span className="h-px w-0 bg-mint transition-all duration-300 group-hover:w-4" />
-                    {item.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="md:col-span-4">
-            <h4 className="mb-5 font-mono text-[10px] uppercase tracking-[0.3em] text-paper/40">
-              Studio
-            </h4>
-            <p className="text-sm leading-relaxed text-paper/65">
-              hello@aurora.studio
-              <br />
-              +1 (000) 111 — AURORA
-            </p>
-            <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.25em] text-paper/45">
-              Local time — <LocalTime />
-            </p>
-          </div>
-        </div>
-
-        {/* bottom row */}
-        <div className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-paper/10 pt-6 font-mono text-[10px] uppercase tracking-[0.25em] text-paper/40">
-          <span>© 2025 AURORA Studio — All rights reserved</span>
-          <span className="hidden md:block">Crafted with obsession</span>
-          <button
-            onClick={() => scrollToTarget(0)}
-            className="group flex items-center gap-2 transition-colors hover:text-mint"
-            aria-label="Back to top"
+    <>
+      {/* closing call to action */}
+      <section id="contact" className="px-5 sm:px-4 md:px-8">
+        <div className="mx-auto max-w-[1240px] rounded-[2rem] bg-ink px-6 py-14 text-center text-cream md:py-20">
+          <h2 className="text-[1.75rem] font-bold sm:text-4xl leading-[1.08] tracking-tight md:text-5xl">
+            Brain Matters.{" "}
+            <span className="whitespace-nowrap text-gold">So Do You.</span>
+          </h2>
+          <p className="mx-auto mt-5 max-w-lg leading-relaxed text-cream/70 md:text-lg">
+            Start with a conversation. Tell us about the room, and we will tell
+            you honestly which of the three formats it needs.
+          </p>
+          <a
+            href={ENQUIRE_HREF}
+            className="group mt-8 inline-flex items-center gap-2 rounded-full bg-gold px-7 py-3.5 text-sm font-medium text-ink transition-colors duration-200 hover:bg-cream"
           >
-            Back to top
-            <ArrowUp className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-1" />
-          </button>
+            Start a Conversation
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </a>
         </div>
-      </div>
+      </section>
 
-      {/* giant watermark */}
-      <div aria-hidden className="pointer-events-none relative select-none overflow-hidden">
-        <motion.div
-          initial={{ y: "42%", opacity: 0 }}
-          whileInView={{ y: "12%", opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-          className="mask-fade-b text-center font-display text-[24vw] font-extrabold leading-[0.78] tracking-[-0.02em] text-stroke-faint"
-        >
-          AURORA
-        </motion.div>
-      </div>
-    </footer>
+      {/* phones get a short footer: the bottom bar already carries the links */}
+      <footer className="mx-auto max-w-[1240px] px-5 max-sm:text-center md:px-10">
+        <div className="flex flex-col gap-5 py-8 sm:gap-8 sm:py-12 md:flex-row md:items-start md:justify-between">
+          <div>
+            <Logo className="h-5 max-sm:mx-auto sm:h-6" />
+            <p className="mt-3 text-sm text-ink-soft">
+              Brain health · Resilience · Purpose
+            </p>
+          </div>
+
+          <nav aria-label="Footer" className="max-sm:hidden">
+            <ul className="flex flex-wrap gap-x-8 gap-y-3 text-[15px]">
+              {LINKS.map((l) => (
+                <li key={l.href}>
+                  {l.external ? (
+                    <a
+                      href={l.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={LINK}
+                    >
+                      {l.label}
+                    </a>
+                  ) : (
+                    <Link href={l.href} className={LINK}>
+                      {l.label}
+                    </Link>
+                  )}
+                </li>
+              ))}
+              <FooterPortalLink className={LINK} />
+            </ul>
+          </nav>
+
+          <ul className="space-y-1 text-sm sm:space-y-1.5 sm:text-[15px]">
+            <li>
+              <a href={`mailto:${contact.email}`} className={LINK}>
+                {contact.email}
+              </a>
+            </li>
+            {CONTACT.phones.map((p) => (
+              <li key={p.href}>
+                <a href={p.href} className={LINK}>
+                  {p.number} · {p.place}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="flex flex-col gap-3 border-t border-line py-5 text-sm text-ink-soft max-sm:items-center sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-6">
+          <span>Licensed in the UAE &amp; India</span>
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 max-sm:justify-center">
+            {SOCIALS.map((s) => (
+              <li key={s.label}>
+                <a href={s.href} target="_blank" rel="noreferrer" className={LINK}>
+                  {s.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="border-t border-line py-5 text-[11px] leading-relaxed text-ink-soft sm:py-6 sm:text-xs">
+          <strong className="font-semibold text-ink">Disclaimer.</strong> {DISCLAIMER}
+        </p>
+      </footer>
+      {/* keeps the end of the page clear of the phone tab bar */}
+      <div aria-hidden className="h-[calc(60px+env(safe-area-inset-bottom))] sm:hidden" />
+    </>
   );
 }

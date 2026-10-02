@@ -7,6 +7,8 @@ export function scrollToTarget(target: string | number) {
   const lenis = lenisRef.current;
   if (lenis) {
     lenis.scrollTo(target, {
+      // keeps the heading clear of the floating nav on phones
+      offset: typeof target === "string" ? -24 : 0,
       duration: 1.6,
       easing: (t: number) => 1 - Math.pow(1 - t, 4),
     });

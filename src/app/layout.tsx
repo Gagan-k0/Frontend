@@ -1,40 +1,39 @@
 import type { Metadata, Viewport } from "next";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
-import "@fontsource-variable/syne";
-import "@fontsource/space-grotesk/300.css";
-import "@fontsource/space-grotesk/400.css";
-import "@fontsource/space-grotesk/500.css";
-import "@fontsource/space-grotesk/700.css";
-import "@fontsource/space-mono/400.css";
-import "@fontsource/space-mono/700.css";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "AURORA® — Immersive Digital Studio",
+  title: "11 Steps to You — the whatboutme brain health course",
   description:
-    "AURORA is an immersive digital studio crafting award-grade websites, motion systems and interactive experiences that blur the line between reality and imagination.",
+    "11 Steps to You is a CPD accredited brain health course of twelve live online classes with Roweena Britto, Brain Health Coach licensed in the UAE and India. 25 CPD hours, in person or online.",
   keywords: [
-    "immersive design",
-    "creative studio",
-    "webgl",
-    "motion design",
-    "interactive experiences",
-    "digital studio",
+    "brain health",
+    "resilience speaker",
+    "11 Steps to You",
+    "CPD accredited programme",
+    "vision board workshop",
+    "Roweena Britto",
+    "whatboutme",
   ],
-  authors: [{ name: "AURORA Studio" }],
-  icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
-  },
+  authors: [{ name: "Roweena Britto" }],
   openGraph: {
-    title: "AURORA® — Immersive Digital Studio",
+    title: "11 Steps to You — the whatboutme brain health course",
     description:
-      "We craft immersive digital experiences that blur the line between reality and imagination.",
-    siteName: "AURORA®",
+      "For the people who hold everyone else together and rarely stop to ask the one question in our name.",
+    siteName: "whatboutme",
     type: "website",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0c",
+  themeColor: "#fffbf3",
   width: "device-width",
   initialScale: 1,
 };
@@ -45,8 +44,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="antialiased bg-ink text-paper">{children}</body>
+    <html
+      lang="en"
+      className={dmSans.variable}
+      suppressHydrationWarning
+    >
+      <body className="bg-cream text-ink antialiased">{children}</body>
     </html>
   );
 }

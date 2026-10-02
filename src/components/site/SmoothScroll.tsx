@@ -6,10 +6,13 @@ import { lenisRef } from "@/lib/scroll";
 
 export default function SmoothScroll() {
   useEffect(() => {
+    // native scrolling for anyone who asked for less motion
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     const lenis = new Lenis({
       lerp: 0.09,
       wheelMultiplier: 1,
-      touchMultiplier: 1.4,
+      touchMultiplier: 1,
     });
     lenisRef.current = lenis;
 

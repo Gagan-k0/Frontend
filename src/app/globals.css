@@ -6,9 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-display: var(--font-syne);
-  --font-sans: var(--font-grotesk);
-  --font-mono: var(--font-spacemono);
+  --font-display: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -30,40 +29,38 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* Aurora palette */
-  --color-ink: #0a0a0c;
-  --color-ink-soft: #101014;
-  --color-paper: #f2f1ea;
-  --color-mint: #4ade80;
-  --color-teal: #2dd4bf;
-  --color-lilac: #a78bfa;
-  --color-gold: #fbbf24;
+  /* whatboutme palette */
+  --color-cream: #fffbf3;
+  --color-cream-deep: #fbeed2;
+  --color-sand: #f3eee6;
+  --color-ink: #14110f;
+  --color-ink-soft: #4a443d;
+  --color-gold: #efa944;
+  --color-gold-deep: #a9670f;
+  --color-line: rgba(20, 17, 15, 0.1);
 }
 
 :root {
-  --radius: 0.625rem;
-  --font-syne: "Syne Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-grotesk: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-spacemono: "Space Mono", ui-monospace, SFMono-Regular, monospace;
+  --radius: 0.875rem;
 
-  --background: #0a0a0c;
-  --foreground: #f2f1ea;
-  --card: #101014;
-  --card-foreground: #f2f1ea;
-  --popover: #101014;
-  --popover-foreground: #f2f1ea;
-  --primary: #4ade80;
-  --primary-foreground: #0a0a0c;
-  --secondary: #1a1a20;
-  --secondary-foreground: #f2f1ea;
-  --muted: #1a1a20;
-  --muted-foreground: rgba(242, 241, 234, 0.55);
-  --accent: #4ade80;
-  --accent-foreground: #0a0a0c;
-  --destructive: #f87171;
-  --border: rgba(242, 241, 234, 0.09);
-  --input: rgba(242, 241, 234, 0.12);
-  --ring: rgba(74, 222, 128, 0.5);
+  --background: #fffbf3;
+  --foreground: #14110f;
+  --card: #ffffff;
+  --card-foreground: #14110f;
+  --popover: #ffffff;
+  --popover-foreground: #14110f;
+  --primary: #14110f;
+  --primary-foreground: #fffbf3;
+  --secondary: #f3eee6;
+  --secondary-foreground: #14110f;
+  --muted: #f3eee6;
+  --muted-foreground: #4a443d;
+  --accent: #efa944;
+  --accent-foreground: #14110f;
+  --destructive: #c2410c;
+  --border: rgba(20, 17, 15, 0.1);
+  --input: rgba(20, 17, 15, 0.14);
+  --ring: rgba(239, 169, 68, 0.6);
 }
 
 @layer base {
@@ -72,180 +69,151 @@
   }
   html {
     scroll-behavior: auto;
+    scrollbar-gutter: stable;
+  }
+  /* Phones: the whole interface one step smaller. Sizes and spacing are in
+     rem, so this shrinks text, buttons, cards and gaps together and keeps
+     their proportions (16px -> 15px base). */
+  @media (max-width: 639px) {
+    html {
+      font-size: 93.75%;
+    }
+  }
+  /* anchor targets stop short of the floating nav */
+  section[id] {
+    scroll-margin-top: 1.5rem;
   }
   body {
-    @apply bg-ink text-paper font-sans antialiased;
+    @apply bg-cream text-ink font-sans antialiased;
     overflow-x: clip;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
   ::selection {
-    background: #4ade80;
-    color: #0a0a0c;
+    background: #efa944;
+    color: #14110f;
   }
-  ::-webkit-scrollbar {
-    width: 9px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #0a0a0c;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(242, 241, 234, 0.16);
-    border-radius: 99px;
-    border: 2px solid #0a0a0c;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(74, 222, 128, 0.5);
+  :focus-visible {
+    outline: 2px solid #a9670f;
+    outline-offset: 3px;
   }
 }
 
-/* Hide native cursor when custom cursor is active (fine pointers only) */
-body.has-cursor,
-body.has-cursor a,
-body.has-cursor button,
-body.has-cursor [role="button"] {
-  cursor: none;
+/* Phones: a row of cards swiped left and right instead of a tall stack.
+   Cards snap into place and the next one peeks in from the edge, which is the
+   cue that the row scrolls. Declared with @utility so breakpoint variants
+   work: "max-sm:swipe-row" swipes on phones and leaves larger screens to the
+   element's own layout classes. */
+@utility swipe-row {
+  display: flex;
+  gap: 0.875rem;
+  margin-inline: -1.25rem;
+  padding-inline: 1.25rem;
+  padding-bottom: 0.5rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 1.25rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  & > * {
+    flex: 0 0 82%;
+    scroll-snap-align: start;
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @layer utilities {
-  /* Outlined display text */
-  .text-stroke {
-    -webkit-text-stroke: 1.5px rgba(242, 241, 234, 0.28);
-    color: transparent;
-  }
-  .text-stroke-faint {
-    -webkit-text-stroke: 1px rgba(242, 241, 234, 0.14);
-    color: transparent;
-  }
-  .text-stroke-mint {
-    -webkit-text-stroke: 1.5px rgba(74, 222, 128, 0.65);
-    color: transparent;
+  /* Faint square grid behind the hero */
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(20, 17, 15, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20, 17, 15, 0.045) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent);
+    mask-image: linear-gradient(to bottom, black 55%, transparent);
   }
 
-  /* Film grain overlay */
-  .noise {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 240px 240px;
-  }
-
-  .mask-fade-b {
-    -webkit-mask-image: linear-gradient(to bottom, black 30%, transparent 100%);
-    mask-image: linear-gradient(to bottom, black 30%, transparent 100%);
-  }
-
-  .mask-fade-edges {
-    -webkit-mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
-    mask-image: linear-gradient(to right, transparent, black 12%, black 88%, transparent);
+  /* Letter-spaced small caps label used throughout the brochure */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
   }
 }
 
-/* ---------- Keyframes ---------- */
-@keyframes marquee-x {
+/* Hero entrance. Pure CSS so it plays as soon as the page paints, with or
+   without scripts. */
+@keyframes rise {
   from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
+    opacity: 0;
+    transform: translateY(22px);
   }
 }
 
-@keyframes marquee-x-rev {
-  from {
-    transform: translateX(-50%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-@keyframes blob-a {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(6vw, -4vh) scale(1.15);
-  }
-  66% {
-    transform: translate(-4vw, 5vh) scale(0.92);
-  }
-}
-
-@keyframes blob-b {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  40% {
-    transform: translate(-7vw, 6vh) scale(1.12);
-  }
-  70% {
-    transform: translate(5vw, -6vh) scale(0.9);
-  }
-}
-
-@keyframes spin-slow {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes pulse-dot {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.55);
-  }
-  60% {
-    box-shadow: 0 0 0 9px rgba(74, 222, 128, 0);
-  }
-}
-
-@keyframes scroll-line {
-  0% {
-    transform: scaleY(0);
-    transform-origin: top;
-  }
-  45% {
-    transform: scaleY(1);
-    transform-origin: top;
-  }
-  55% {
-    transform: scaleY(1);
-    transform-origin: bottom;
-  }
-  100% {
-    transform: scaleY(0);
-    transform-origin: bottom;
-  }
-}
-
-.animate-marquee {
-  animation: marquee-x 36s linear infinite;
-}
-.animate-marquee-rev {
-  animation: marquee-x-rev 46s linear infinite;
-}
-.animate-blob-a {
-  animation: blob-a 22s ease-in-out infinite;
-}
-.animate-blob-b {
-  animation: blob-b 26s ease-in-out infinite;
-}
-.animate-spin-slower {
-  animation: spin-slow 14s linear infinite;
-}
-.animate-pulse-dot {
-  animation: pulse-dot 2.2s ease-out infinite;
-}
-.animate-scroll-line {
-  animation: scroll-line 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+.rise {
+  animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee,
-  .animate-marquee-rev,
-  .animate-blob-a,
-  .animate-blob-b,
-  .animate-spin-slower,
-  .animate-scroll-line {
+  .rise {
     animation: none;
+  }
+}
+
+/* Logo marquee: two identical rows, shifted by one row width */
+@keyframes marquee-x {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.marquee-track {
+  animation: marquee-x 45s linear infinite;
+  will-change: transform;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .marquee-track {
+    animation: none;
+  }
+  /* no animation, so the row scrolls by hand and the copy is dropped */
+  .marquee {
+    overflow-x: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .marquee-track > [aria-hidden="true"] {
+    display: none;
   }
 }
